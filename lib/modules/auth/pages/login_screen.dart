@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (doctorProfile == null) {
             Navigator.pushReplacementNamed(
               context,
-              AppRoutesName.DoctorProfileScreen,
+              AppRoutesName.DoctorRegistrationScreen,
               arguments: currentUser.id,
             );
           } else {

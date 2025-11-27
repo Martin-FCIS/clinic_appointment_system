@@ -24,16 +24,16 @@ class WorkDayHelper {
       this.endTime});
 }
 
-class DoctorProfileScreen extends StatefulWidget {
+class DoctorRegistrationScreen extends StatefulWidget {
   final int userId;
 
-  DoctorProfileScreen({super.key, required this.userId});
+  DoctorRegistrationScreen({super.key, required this.userId});
 
   @override
-  State<DoctorProfileScreen> createState() => _DoctorProfileScreenState();
+  State<DoctorRegistrationScreen> createState() => _DoctorRegistrationScreenState();
 }
 
-class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
+class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
   TextEditingController priceController = TextEditingController();
   User? _currentUser;
   bool _isLoading = true;

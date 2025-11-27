@@ -14,6 +14,8 @@ class AddDoctorScreen extends StatefulWidget {
 }
 
 class _AddDoctorScreenState extends State<AddDoctorScreen> {
+  List<Map<String, dynamic>> localDoctors = [];
+  bool isLoaded = false;
   final TextEditingController specialityController = TextEditingController();
 
   final TextEditingController priceController = TextEditingController();
@@ -31,7 +33,11 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator());
           }
-          final doctorsList = snapshot.data;
+          if (!isLoaded) {
+            localDoctors = List<Map<String, dynamic>>.from(snapshot.data!);
+            isLoaded = true;
+          }
+          final doctorsList = localDoctors;
           print(doctorsList);
           specialityController.text =
               doctorsList!.isEmpty ? "" : doctorsList[0]['specialty'];
@@ -100,11 +106,11 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
                         await DatabaseHelper.getInstance()
                             .updateDoctorStatus(selectedID, 'approved');
 
-                        doctorsList.removeAt(index);
+                        localDoctors.removeAt(index);
                         specialityController.text = "";
                         priceController.text = "";
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Doctor Approved Successfully')));
+                            content: Text('Doctor Approved Successfully'),backgroundColor: Colors.blue,));
                         setState(() {});
                       }
                     },
@@ -118,13 +124,13 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
                         DatabaseHelper.getInstance()
                             .updateDoctorStatus(selectedID, 'denied');
 
-                        doctorsList.removeAt(index);
+                        localDoctors.removeAt(index);
                         specialityController.text = "";
                         priceController.text = "";
 
                         setState(() {});
                         ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Doctor denied')));
+                            SnackBar(content: Text('Doctor denied'),backgroundColor: Colors.red,));
                       }
                     },
                     text: 'Decline Doctor',

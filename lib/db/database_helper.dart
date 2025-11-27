@@ -129,7 +129,15 @@ class DatabaseHelper {
     }
     return null;
   }
-
+  Future<int> updateUser(User user) async {
+    final db = await database;
+    return await db.update(
+      'users',
+      user.toMap(),
+      where: 'id = ?',
+      whereArgs: [user.id],
+    );
+  }
   Future<int> saveDoctorProfile(Map<String, dynamic> doctorData) async {
     final db = await database;
 
@@ -217,11 +225,13 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> getDoctorAppointments(int doctorId) async {
     final db = await database;
-    return await db.query(
-      'appointments',
-      where: 'doctorId = ?',
-      whereArgs: [doctorId],
-    );
+    return await db.rawQuery('''
+      SELECT appointments.*, users.name as patientName 
+      FROM appointments
+      INNER JOIN users ON appointments.patientId = users.id
+      WHERE appointments.doctorId = ?
+      ORDER BY appointments.id DESC
+    ''', [doctorId]);
   }
 
   Future<List<Map<String, dynamic>>> getPendingDoctors() async {
@@ -247,5 +257,51 @@ class DatabaseHelper {
   Future close() async {
     final db = await database;
     db.close();
+  }
+  // دالة مؤقتة للاختبار: بتضيف مريض وحجوزات وهمية
+  Future<void> insertDummyAppointments(int doctorId) async {
+    final db = await database;
+
+    // 1. نضيف مريض وهمي (لو مش موجود)
+    int patientId;
+    var patientCheck = await db.query('users', where: 'email = ?', whereArgs: ['patient@test.com']);
+
+    if (patientCheck.isEmpty) {
+      patientId = await db.insert('users', {
+        'name': 'Test Patient',
+        'email': 'patient@test.com',
+        'password': '123', // مش مهم قوي هنا
+        'role': 3, // 3 = Patient
+      });
+    } else {
+      patientId = patientCheck.first['id'] as int;
+    }
+
+    // 2. نضيف 3 حجوزات (Pending) للدكتور ده
+    await db.insert('appointments', {
+      'patientId': patientId,
+      'doctorId': doctorId,
+      'date': '2023-11-20',
+      'time': '10:00 AM',
+      'status': 'pending',
+    });
+
+    await db.insert('appointments', {
+      'patientId': patientId,
+      'doctorId': doctorId,
+      'date': '2023-11-21',
+      'time': '05:30 PM',
+      'status': 'pending',
+    });
+
+    await db.insert('appointments', {
+      'patientId': patientId,
+      'doctorId': doctorId,
+      'date': '2023-11-22',
+      'time': '01:00 PM',
+      'status': 'approved', // واحد مقبول جاهز للتجربة
+    });
+
+    print("✅ Dummy Appointments Added for Doctor ID: $doctorId");
   }
 }
