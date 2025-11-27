@@ -138,6 +138,14 @@ class DatabaseHelper {
       whereArgs: [user.id],
     );
   }
+  Future<int> deleteUser(int userId) async {
+    final db = await database;
+    return await db.delete(
+      'users',
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+  }
   Future<int> saveDoctorProfile(Map<String, dynamic> doctorData) async {
     final db = await database;
 

@@ -95,9 +95,11 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               title: const Text("Profile"),
               onTap: () {
                 Navigator.pop(context);
-               Navigator.pushNamed(context, AppRoutesName.DoctorProfileScreen,arguments: _user!.id).then((_){
-                 _getData();
-               });
+                Navigator.pushNamed(context, AppRoutesName.DoctorProfileScreen,
+                        arguments: _user!.id)
+                    .then((_) {
+                  _getData();
+                });
               },
             ),
             ListTile(
@@ -109,7 +111,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                   context,
                   AppRoutesName.DoctorScheduleScreen,
                   arguments: _doctor!.id,
-                ).then((_){
+                ).then((_) {
                   _getData();
                 });
               },
@@ -120,10 +122,9 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(
-                    context,
-                    AppRoutesName.DoctorAppointmentsScreen,
-                    arguments: _doctor!.id,
-
+                  context,
+                  AppRoutesName.DoctorAppointmentsScreen,
+                  arguments: _doctor!.id,
                 );
               },
             ),
@@ -136,7 +137,78 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text("Logout", style: TextStyle(color: Colors.red)),
-              onTap: () {},
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(
+                      "Logout ?",
+                      style: TextStyle(
+                          color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
+                    content: Text("Are you sure you want to logout ?"),
+                    actions: [
+                      TextButton(
+                        child: const Text("Cancel"),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      TextButton(
+                        child: const Text("logout",
+                            style: TextStyle(color: Colors.red)),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                          Navigator.pushReplacementNamed(
+                              context, AppRoutesName.loginScreen);
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading:
+                  const Icon(Icons.delete_forever_rounded, color: Colors.red),
+              title: const Text("Delete Account",
+                  style: TextStyle(color: Colors.red)),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(
+                      "Delete Account ?",
+                      style: TextStyle(
+                          color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
+                    content:
+                        Text("Are you sure you want to Delete the Account?"),
+                    actions: [
+                      TextButton(
+                        child: const Text("Cancel"),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      TextButton(
+                        child: const Text("Delete",
+                            style: TextStyle(color: Colors.red)),
+                        onPressed: () async {
+                          await DatabaseHelper.getInstance()
+                              .deleteUser(widget.userId);
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            Navigator.pushNamedAndRemoveUntil(context,
+                                AppRoutesName.loginScreen, (route) => false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text("Account deleted successfully"),backgroundColor: Colors.red,));
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -175,137 +247,153 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 ),
               )
             : SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.shade200),
-                ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 30),
-                    SizedBox(width: 15),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    Container(
+                      padding: EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.green.shade200),
+                      ),
+                      child: Row(
                         children: [
-                          Text(
-                            "Status: Active",
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green.shade800),
+                          Icon(Icons.check_circle,
+                              color: Colors.green, size: 30),
+                          SizedBox(width: 15),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Status: Active",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.green.shade800),
+                                ),
+                                Text("You are visible to patients"),
+                              ],
+                            ),
                           ),
-                          Text("You are visible to patients"),
                         ],
                       ),
                     ),
+                    SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomCard(
+                            title: "Specialty",
+                            value: _doctor!.specialty, // التخصص
+                            icon: Icons.medical_services_outlined,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: CustomCard(
+                            title: "Price",
+                            value: "${_doctor!.price} EGP", // السعر
+                            icon: Icons.monetization_on_outlined,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Working Hours",
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutesName.DoctorScheduleScreen,
+                              arguments: _doctor!.id,
+                            ).then((_) {
+                              _getData();
+                            });
+                            // Edit Action
+                          },
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    _schedules.isEmpty
+                        ? Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(30),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              children: const [
+                                Icon(Icons.calendar_month_outlined,
+                                    size: 40, color: Colors.grey),
+                                SizedBox(height: 10),
+                                Text("No schedules added yet",
+                                    style: TextStyle(color: Colors.grey)),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _schedules.length,
+                            itemBuilder: (context, index) {
+                              final schedule = _schedules[index];
+                              return Card(
+                                elevation: 2,
+                                margin: const EdgeInsets.only(bottom: 10),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: Colors.blue.shade50,
+                                    child: Text(
+                                      schedule.day
+                                          .substring(0, 3)
+                                          .toUpperCase(),
+                                      style: const TextStyle(
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    schedule.day,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  trailing: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      "${schedule.startTime} - ${schedule.endTime}",
+                                      style: TextStyle(
+                                          color: Colors.grey.shade800,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                   ],
                 ),
               ),
-              SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomCard(
-                      title: "Specialty",
-                      value: _doctor!.specialty, // التخصص
-                      icon: Icons.medical_services_outlined,
-                      color: Colors.blue,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: CustomCard(
-                      title: "Price",
-                      value: "${_doctor!.price} EGP", // السعر
-                      icon: Icons.monetization_on_outlined,
-                      color: Colors.orange,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Working Hours",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.blue),
-                    onPressed: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutesName.DoctorScheduleScreen,
-                        arguments: _doctor!.id,
-                      ).then((_){
-                        _getData();
-                      });
-                      // Edit Action
-                    },
-                  )
-                ],
-              ),
-
-              const SizedBox(height: 10),
-              _schedules.isEmpty
-                  ? Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(30),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: const [
-                    Icon(Icons.calendar_month_outlined, size: 40, color: Colors.grey),
-                    SizedBox(height: 10),
-                    Text("No schedules added yet", style: TextStyle(color: Colors.grey)),
-                  ],
-                ),
-              )
-                  : ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _schedules.length,
-                itemBuilder: (context, index) {
-                  final schedule = _schedules[index];
-                  return Card(
-                    elevation: 2,
-                    margin: const EdgeInsets.only(bottom: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.blue.shade50,
-                        child: Text(
-                          schedule.day.substring(0, 3).toUpperCase(),
-                          style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12),
-                        ),
-                      ),
-                      title: Text(
-                        schedule.day,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          "${schedule.startTime} - ${schedule.endTime}",
-                          style: TextStyle(color: Colors.grey.shade800, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
