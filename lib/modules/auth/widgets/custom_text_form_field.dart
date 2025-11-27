@@ -32,9 +32,9 @@ class CustomTextFormField extends StatelessWidget {
            if(isSignUp&&!isEmail){
             if (!SecurityUtils.isStrongPassword(value)) {
               return "Weak Password! Use 8+ chars (letters & numbers)";
-
           }
         }
+
         return null;
       },
       controller: Controller,

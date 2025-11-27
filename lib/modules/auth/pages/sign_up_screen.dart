@@ -50,7 +50,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       final newUser = UserFactory.createUser(
         name: usernameController.text,
         email: emailController.text,
-        password: hashedPassword, // بنبعت المشفر
+        password: hashedPassword,
         role: _selectedRole,
       );
       int resultId = await dbHelper.createUser(newUser.toMap());

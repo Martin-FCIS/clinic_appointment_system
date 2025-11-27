@@ -2,11 +2,9 @@ import 'dart:convert';
  import 'package:crypto/crypto.dart';
 
 class SecurityUtils {
-
-  // 1. دالة تشفير الباسورد (SHA-256) 🔐
   static String hashPassword(String password) {
-    var bytes = utf8.encode(password); // تحويل النص لـ bytes
-    var digest = sha256.convert(bytes); // التشفير
+    var bytes = utf8.encode(password);
+    var digest = sha256.convert(bytes);
     return digest.toString();
   }
 

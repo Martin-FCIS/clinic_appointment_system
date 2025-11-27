@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SnackBar(content: Text("Welcome back, ${currentUser.name}!"),backgroundColor: Colors.blue,),
         );
 
-        int role = user['role'];
+        int role = currentUser.role;
 
         if (role == 1) {
           // Navigator.pushReplacementNamed(context, AppRoutesName.adminHome);
