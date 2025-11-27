@@ -59,7 +59,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (mounted) {
           // check if widget is still on screen
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Account Created Successfully!'),backgroundColor: Colors.blue,),
+            SnackBar(content: Text('Account Created Successfully! with ID : $resultId'),backgroundColor: Colors.blue,),
           );
           Navigator.pop(context);
         }

@@ -1,5 +1,5 @@
-import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 
 import '../core/utils/security_utils.dart';
 import '../models/user_factory.dart';
@@ -25,7 +25,6 @@ class DatabaseHelper {
 
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
-    print("path is $dbPath");
     final path = join(dbPath, filePath);
 
     return await openDatabase(path, version: 1, onCreate: _createDB);
@@ -88,15 +87,14 @@ class DatabaseHelper {
     await db.insert('users', adminUser.toMap());
     print("✅ Default Admin Created Successfully using Factory");
 
+
     // ملاحظة: التعامل مع الوقت في SQLite بيكون Text (ISO8601 Strings)
   }
-
-  //auth
+      //auth
   Future<int> createUser(Map<String, dynamic> user) async {
     final db = await database;
     return await db.insert('users', user);
   }
-
   Future<Map<String, dynamic>?> loginUser(String email, String password) async {
     final db = await database;
     List<Map<String, dynamic>> maps = await db.query(
@@ -110,7 +108,6 @@ class DatabaseHelper {
     }
     return null;
   }
-
   Future<bool> isEmailExists(String email) async {
     final db = await database;
     final result = await db.query(
@@ -120,10 +117,13 @@ class DatabaseHelper {
     );
     return result.isNotEmpty;
   }
-
   Future<User?> getUserById(int id) async {
     final db = await database;
-    var result = await db.query('users', where: 'id = ?', whereArgs: [id]);
+    var result = await db.query(
+        'users',
+        where: 'id = ?',
+        whereArgs: [id]
+    );
 
     if (result.isNotEmpty) {
       return User.fromMap(result.first);
@@ -134,21 +134,32 @@ class DatabaseHelper {
   Future<int> saveDoctorProfile(Map<String, dynamic> doctorData) async {
     final db = await database;
 
-    var result = await db.query('doctors',
-        where: 'userId = ?', whereArgs: [doctorData['userId']]);
+    var result = await db.query(
+        'doctors',
+        where: 'userId = ?',
+        whereArgs: [doctorData['userId']]
+    );
 
     if (result.isEmpty) {
       return await db.insert('doctors', doctorData);
     } else {
-      return await db.update('doctors', doctorData,
-          where: 'userId = ?', whereArgs: [doctorData['userId']]);
+      var dataToUpdate = Map<String, dynamic>.from(doctorData);
+      dataToUpdate.remove('id');
+      return await db.update(
+          'doctors',
+          dataToUpdate,
+          where: 'userId = ?',
+          whereArgs: [doctorData['userId']]
+      );
     }
   }
-
   Future<Map<String, dynamic>?> getDoctorDetails(int userId) async {
     final db = await database;
-    var res =
-        await db.query('doctors', where: 'userId = ?', whereArgs: [userId]);
+    var res = await db.query(
+        'doctors',
+        where: 'userId = ?',
+        whereArgs: [userId]
+    );
     return res.isNotEmpty ? res.first : null;
   }
 
@@ -156,26 +167,38 @@ class DatabaseHelper {
     final db = await database;
     return await db.insert('schedules', schedule);
   }
-
   Future<List<Map<String, dynamic>>> getDoctorSchedules(int doctorId) async {
     final db = await database;
-    return await db
-        .query('schedules', where: 'doctorId = ?', whereArgs: [doctorId]);
+    return await db.query(
+        'schedules',
+        where: 'doctorId = ?',
+        whereArgs: [doctorId]
+    );
   }
-
   Future<int> deleteSchedule(int scheduleId) async {
     final db = await database;
-    return await db
-        .delete('schedules', where: 'id = ?', whereArgs: [scheduleId]);
+    return await db.delete(
+        'schedules',
+        where: 'id = ?',
+        whereArgs: [scheduleId]
+    );
+  }
+  Future<int> deleteSchedulesByDoctorId(int doctorId) async {
+    final db = await database;
+    return await db.delete(
+        'schedules',
+        where: 'doctorId = ?',
+        whereArgs: [doctorId]
+    );
   }
 
   Future<int> createAppointment(Map<String, dynamic> appointment) async {
     final db = await database;
     return await db.insert('appointments', appointment);
   }
-
   Future<List<Map<String, dynamic>>> getAllDoctors() async {
     final db = await database;
+    // هنا بنعمل JOIN عشان نجيب اسم الدكتور من جدول الـ users وتخصصه من جدول الـ doctors
     return await db.rawQuery('''
       SELECT doctors.id, users.name, doctors.specialty, doctors.price 
       FROM doctors
@@ -184,8 +207,7 @@ class DatabaseHelper {
     ''');
   }
 
-  Future<int> updateAppointmentStatus(
-      int appointmentId, String newStatus) async {
+  Future<int> updateAppointmentStatus(int appointmentId, String newStatus) async {
     final db = await database;
     return await db.update(
       'appointments',
@@ -194,9 +216,7 @@ class DatabaseHelper {
       whereArgs: [appointmentId],
     );
   }
-
-  Future<List<Map<String, dynamic>>> getPatientAppointments(
-      int patientId) async {
+  Future<List<Map<String, dynamic>>> getPatientAppointments(int patientId) async {
     final db = await database;
     return await db.rawQuery('''
       SELECT appointments.*, users.name as doctorName, doctors.specialty 
@@ -215,7 +235,6 @@ class DatabaseHelper {
       whereArgs: [doctorId],
     );
   }
-
   Future<List<Map<String, dynamic>>> getPendingDoctors() async {
     final db = await database;
     return await db.rawQuery('''
@@ -225,7 +244,6 @@ class DatabaseHelper {
       WHERE doctors.status = 'pending'
     ''');
   }
-
   Future<int> updateDoctorStatus(int doctorId, String newStatus) async {
     final db = await database;
     return await db.update(
