@@ -2,17 +2,14 @@ import 'package:clinic_appointment_system/core/constants/app_assets.dart';
 import 'package:clinic_appointment_system/core/routes/app_routes_name.dart';
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_button.dart';
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_text_form_field.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/security_utils.dart';
 import '../../../db/database_helper.dart';
 import '../../../models/user_model.dart';
-import '../../doctor/profile/pages/doctor_profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-
-   LoginScreen({super.key});
+  LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -36,27 +33,33 @@ class _LoginScreenState extends State<LoginScreen> {
         emailController.clear();
         passController.clear();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Welcome back, ${currentUser.name}!"),backgroundColor: Colors.blue,),
+          SnackBar(
+            content: Text("Welcome back, ${currentUser.name}!"),
+            backgroundColor: Colors.blue,
+          ),
         );
 
         int role = currentUser.role;
-        if(role==2){
+        if (role == 2) {
           var doctorProfile = await dbHelper.getDoctorDetails(currentUser.id!);
-          if(doctorProfile==null){
+          if (doctorProfile == null) {
             Navigator.pushReplacementNamed(
               context,
               AppRoutesName.DoctorProfileScreen,
               arguments: currentUser.id,
             );
-          }
-          else {
-             Navigator.pushReplacementNamed(context, AppRoutesName.DoctorHomeScreen,arguments: currentUser.id);
+          } else {
+            Navigator.pushReplacementNamed(
+                context, AppRoutesName.DoctorHomeScreen,
+                arguments: currentUser.id);
             print("Go to Doctor Home");
           }
-        }
-        else if (currentUser.role == 1) { // Admin
-          // Navigator.pushReplacementNamed(context, AppRoutesName.adminHome);
-        } else { // Patient
+        } else if (currentUser.role == 1) {
+          // Admin
+          Navigator.pushReplacementNamed(
+              context, AppRoutesName.adminHomeScreen);
+        } else {
+          // Patient
           // Navigator.pushReplacementNamed(context, AppRoutesName.patientHome);
         }
       } else {
@@ -72,7 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -87,11 +89,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                 ),
                 Spacer(),
-                CustomTextFormField(Controller: emailController, hintText: "email", icon: Icon(Icons.email_outlined),isPass: false,isSignUp: false,isEmail: false,),
+                CustomTextFormField(
+                  Controller: emailController,
+                  hintText: "email",
+                  icon: Icon(Icons.email_outlined),
+                  isPass: false,
+                  isSignUp: false,
+                  isEmail: false,
+                ),
                 SizedBox(
                   height: 30,
                 ),
-                CustomTextFormField(Controller: passController, hintText: "password", icon: Icon(Icons.password_rounded), isPass: true,isEmail: false,isSignUp: false,),
+                CustomTextFormField(
+                  Controller: passController,
+                  hintText: "password",
+                  icon: Icon(Icons.password_rounded),
+                  isPass: true,
+                  isEmail: false,
+                  isSignUp: false,
+                ),
                 SizedBox(
                   height: 10,
                 ),
@@ -111,16 +127,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontWeight: FontWeight.bold),
                       ),
                       onTap: () {
-                        Navigator.pushNamed(context, AppRoutesName.signUpScreen);
+                        Navigator.pushNamed(
+                            context, AppRoutesName.signUpScreen);
                       },
                     ),
                   ],
                 ),
                 Spacer(),
-                CustomButton(function: _login,text: "Login",),
+                CustomButton(
+                  function: _login,
+                  text: "Login",
+                ),
                 Spacer(),
                 Spacer(),
-
               ],
             ),
           ),

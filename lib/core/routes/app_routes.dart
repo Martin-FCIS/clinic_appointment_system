@@ -6,8 +6,8 @@ import 'package:clinic_appointment_system/modules/auth/pages/sign_up_screen.dart
 import 'package:clinic_appointment_system/modules/doctor/profile/pages/doctor_profile_screen.dart';
 import 'package:flutter/cupertino.dart';
 
+import '../../modules/admin/home/pages/home.dart';
 import '../../modules/doctor/home/pages/doctor_home_screen.dart';
-
 
 class AppRoutes {
   static Map<String, Widget Function(BuildContext)> routes = {
@@ -25,5 +25,4 @@ class AppRoutes {
     AppRoutesName.adminDoctorsScreen: (_) => DoctorsScreen(),
     AppRoutesName.adminAddDoctorScreen: (_) => AddDoctorScreen(),
   };
-  }
-
+}

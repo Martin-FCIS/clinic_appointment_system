@@ -32,7 +32,13 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
             return Center(child: CircularProgressIndicator());
           }
           final doctorsList = snapshot.data;
-          selectedID = doctorsList!.isEmpty ? 0 : doctorsList[0]['id'];
+          print(doctorsList);
+          specialityController.text =
+              doctorsList!.isEmpty ? "" : doctorsList[0]['specialty'];
+          priceController.text =
+              doctorsList.isEmpty ? "" : doctorsList[0]['price'].toString();
+
+          selectedID = doctorsList.isEmpty ? 0 : doctorsList[0]['id'];
           return Form(
             key: _formKey,
             child: Padding(
@@ -50,19 +56,20 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
                         : doctorsList,
                     label: 'Choose Doctor',
                     onChanged: (value) {
-                      setState(() {
-                        selectedID = int.parse(value);
-                        int counter = 0;
-                        for (Map<String, dynamic> doc in snapshot.data!) {
-                          if (doc['id'] == selectedID) {
-                            specialityController.text = doc['speciality'];
-                            priceController.text = doc['price'];
-                            index = counter;
-                          }
-                          counter++;
+                      selectedID = int.parse(value);
+                      int counter = 0;
+
+                      for (Map<String, dynamic> doc in doctorsList) {
+                        if (doc['id'] == selectedID) {
+                          specialityController.text = doc['specialty'];
+                          priceController.text = doc['price'].toString();
+                          print("${doc['id']} // $selectedID");
+                          index = counter;
                           return;
                         }
-                      });
+                        counter++;
+                      }
+                      setState(() {});
                     },
                   ),
                   Spacer(),
@@ -84,21 +91,21 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
                     isPass: false,
                     isSignUp: false,
                     isEmail: false,
-                    isNum: true,
+                    isPrice: true,
                   ),
                   Spacer(),
                   CustomButton(
-                    function: () {
+                    function: () async {
                       if (_formKey.currentState!.validate()) {
-                        DatabaseHelper.getInstance()
+                        await DatabaseHelper.getInstance()
                             .updateDoctorStatus(selectedID, 'approved');
-                        setState(() {
-                          doctorsList.removeAt(index);
-                          specialityController.text = "";
-                          priceController.text = "";
-                        });
+
+                        doctorsList.removeAt(index);
+                        specialityController.text = "";
+                        priceController.text = "";
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                             content: Text('Doctor Approved Successfully')));
+                        setState(() {});
                       }
                     },
                     text: 'Approve Doctor',
@@ -110,11 +117,12 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
                       if (_formKey.currentState!.validate()) {
                         DatabaseHelper.getInstance()
                             .updateDoctorStatus(selectedID, 'denied');
-                        setState(() {
-                          doctorsList.removeAt(index);
-                          specialityController.text = "";
-                          priceController.text = "";
-                        });
+
+                        doctorsList.removeAt(index);
+                        specialityController.text = "";
+                        priceController.text = "";
+
+                        setState(() {});
                         ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Doctor denied')));
                       }

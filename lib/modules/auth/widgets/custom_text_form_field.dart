@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/security_utils.dart';
@@ -28,6 +27,7 @@ class CustomTextFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      readOnly: isReadOnly,
       keyboardType: isPrice
           ? TextInputType.number
           : (isEmail ? TextInputType.emailAddress : TextInputType.text),
@@ -35,29 +35,29 @@ class CustomTextFormField extends StatelessWidget {
         if (value == null || value.isEmpty) {
           return "${hintText.toUpperCase()} is required";
         }
-        if(isSignUp&&isEmail) {
+        if (isSignUp && isEmail) {
           if (!SecurityUtils.isValidEmail(value)) {
             return "Invalid Email format";
           }
         }
-           if(isSignUp&&!isEmail){
-            if (!SecurityUtils.isStrongPassword(value)) {
-              return "Weak Password! Use 8+ chars (letters & numbers)";
+        if (isSignUp && !isEmail) {
+          if (!SecurityUtils.isStrongPassword(value)) {
+            return "Weak Password! Use 8+ chars (letters & numbers)";
           }
         }
-           if(isPrice){
-              if(double.tryParse(value)==null){
-                return "Please enter valid number";
-              }
-              if (double.parse(value) <= 0) {
-                return "Price must be greater than 0";
-              }
-           }
+        if (isPrice) {
+          if (double.tryParse(value) == null) {
+            return "Please enter valid number";
+          }
+          if (double.parse(value) <= 0) {
+            return "Price must be greater than 0";
+          }
+        }
 
         return null;
       },
       controller: Controller,
-      obscureText: isPass?true:false,
+      obscureText: isPass ? true : false,
       decoration: InputDecoration(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           hintStyle: TextStyle(color: Colors.grey),

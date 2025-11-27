@@ -1,5 +1,5 @@
 import 'package:clinic_appointment_system/core/routes/app_routes.dart';
-import 'package:clinic_appointment_system/modules/admin/home/pages/home.dart';
+import 'package:clinic_appointment_system/modules/auth/pages/login_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       routes: AppRoutes.routes,
-      home: AdminHome(),
+      home: LoginScreen(),
     );
   }
 }
