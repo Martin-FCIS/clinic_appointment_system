@@ -1,15 +1,18 @@
-import 'package:clinic_appointment_system/modules/core_widgets/CustomDropDown.dart';
 import 'package:flutter/material.dart';
+
+import 'custom_dropdown.dart';
 
 class CustomDropDownAdapter extends StatelessWidget {
   const CustomDropDownAdapter(
       {super.key,
       required this.list,
       required this.label,
-      this.isDisabled = false});
+      required this.onChanged,
+      this.selectedValue});
   final List<String> list;
   final String label;
-  final bool isDisabled;
+  final void Function(dynamic)? onChanged;
+  final dynamic selectedValue;
   @override
   Widget build(BuildContext context) {
     List<Map<String, dynamic>> mapList = [];
@@ -19,9 +22,12 @@ class CustomDropDownAdapter extends StatelessWidget {
       counter++;
     }
     return CustomDropDown(
+      onChanged: (val) {
+        onChanged!(val.toString());
+      },
+      selectedValue: selectedValue,
       list: mapList,
       label: label,
-      isDisabled: isDisabled,
     );
   }
 }

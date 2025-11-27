@@ -8,7 +8,7 @@ class AppointmentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Color(secondaryColor),
+      color: AppColors.secondaryColor,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         child: Container(

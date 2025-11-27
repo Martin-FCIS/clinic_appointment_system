@@ -12,7 +12,7 @@ class DoctorsScreen extends StatelessWidget {
         onPressed: () {
           Navigator.of(context).pushNamed(AppRoutesName.adminAddDoctorScreen);
         },
-        backgroundColor: Color(secondaryColor),
+        backgroundColor: AppColors.secondaryColor,
         label: Text(
           'Add doctor',
           style: TextStyle(

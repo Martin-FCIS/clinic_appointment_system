@@ -1,10 +1,14 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
-    Function() function;
-    String text;
-   CustomButton({super.key,required this.function,required this.text});
+  Function() function;
+  String text;
+  Color color;
+  CustomButton(
+      {super.key,
+      required this.function,
+      required this.text,
+      this.color = Colors.blue});
 
   @override
   Widget build(BuildContext context) {
@@ -13,15 +17,17 @@ class CustomButton extends StatelessWidget {
         Expanded(
           child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: color,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                   padding: EdgeInsets.all(16)),
               onPressed: () {
-               function();
+                function();
               },
               child: Text(
-                text, style: TextStyle(color: Colors.white, fontSize: 22),)),
+                text,
+                style: TextStyle(color: Colors.white, fontSize: 22),
+              )),
         ),
       ],
     );
