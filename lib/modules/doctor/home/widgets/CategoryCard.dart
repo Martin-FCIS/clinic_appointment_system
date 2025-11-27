@@ -2,9 +2,11 @@ import 'package:clinic_appointment_system/core/themes/themes.dart';
 import 'package:flutter/material.dart';
 
 class CategoryCard extends StatelessWidget {
-  const CategoryCard({super.key, required this.icon, required this.catName});
+  const CategoryCard(
+      {super.key, required this.icon, required this.catName, this.onTap});
   final icon;
   final String catName;
+  final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -12,7 +14,7 @@ class CategoryCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(30),
       child: InkWell(
         borderRadius: BorderRadius.circular(30),
-        onTap: () {},
+        onTap: onTap,
         child: SizedBox(
           width: double.infinity,
           height: MediaQuery.sizeOf(context).height * 0.3,
