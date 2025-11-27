@@ -8,6 +8,7 @@ class CustomTextFormField extends StatelessWidget {
   bool isSignUp;
   bool isPass;
   bool isEmail;
+  bool isPrice;
   String hintText;
   Icon icon;
 
@@ -15,11 +16,14 @@ class CustomTextFormField extends StatelessWidget {
       {super.key,
       required this.Controller,
       required this.hintText,
-      required this.icon,required this.isPass,required this.isSignUp,required this.isEmail});
+      required this.icon,required this.isPass,required this.isSignUp,required this.isEmail,this.isPrice=false});
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      keyboardType: isPrice
+          ? TextInputType.number
+          : (isEmail ? TextInputType.emailAddress : TextInputType.text),
       validator: (value) {
         if (value == null || value.isEmpty) {
           return "${hintText.toUpperCase()} is required";
@@ -34,6 +38,14 @@ class CustomTextFormField extends StatelessWidget {
               return "Weak Password! Use 8+ chars (letters & numbers)";
           }
         }
+           if(isPrice){
+              if(double.tryParse(value)==null){
+                return "Please enter valid number";
+              }
+              if (double.parse(value) <= 0) {
+                return "Price must be greater than 0";
+              }
+           }
 
         return null;
       },

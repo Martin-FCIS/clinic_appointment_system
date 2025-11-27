@@ -48,6 +48,7 @@ class DatabaseHelper {
         userId INTEGER NOT NULL,
         specialty TEXT NOT NULL,
         price REAL NOT NULL,
+        status TEXT DEFAULT 'pending', -- (New) حالة الدكتور: pending, approved, rejected
         FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
       )
     ''');
@@ -116,6 +117,19 @@ class DatabaseHelper {
     );
     return result.isNotEmpty;
   }
+  Future<User?> getUserById(int id) async {
+    final db = await database;
+    var result = await db.query(
+        'users',
+        where: 'id = ?',
+        whereArgs: [id]
+    );
+
+    if (result.isNotEmpty) {
+      return User.fromMap(result.first);
+    }
+    return null;
+  }
 
   Future<int> saveDoctorProfile(Map<String, dynamic> doctorData) async {
     final db = await database;
@@ -129,9 +143,11 @@ class DatabaseHelper {
     if (result.isEmpty) {
       return await db.insert('doctors', doctorData);
     } else {
+      var dataToUpdate = Map<String, dynamic>.from(doctorData);
+      dataToUpdate.remove('id');
       return await db.update(
           'doctors',
-          doctorData,
+          dataToUpdate,
           where: 'userId = ?',
           whereArgs: [doctorData['userId']]
       );
@@ -167,6 +183,14 @@ class DatabaseHelper {
         whereArgs: [scheduleId]
     );
   }
+  Future<int> deleteSchedulesByDoctorId(int doctorId) async {
+    final db = await database;
+    return await db.delete(
+        'schedules',
+        where: 'doctorId = ?',
+        whereArgs: [doctorId]
+    );
+  }
 
   Future<int> createAppointment(Map<String, dynamic> appointment) async {
     final db = await database;
@@ -174,14 +198,13 @@ class DatabaseHelper {
   }
   Future<List<Map<String, dynamic>>> getAllDoctors() async {
     final db = await database;
-    // هنا بنعمل JOIN عشان نجيب اسم الدكتور من جدول الـ users وتخصصه من جدول الـ doctors
     return await db.rawQuery('''
       SELECT doctors.id, users.name, doctors.specialty, doctors.price 
       FROM doctors
       INNER JOIN users ON doctors.userId = users.id
+      WHERE doctors.status = 'approved'  -- (New) الشرط ده مهم جداً
     ''');
   }
-
 
   Future<int> updateAppointmentStatus(int appointmentId, String newStatus) async {
     final db = await database;
@@ -208,6 +231,24 @@ class DatabaseHelper {
     return await db.query(
       'appointments',
       where: 'doctorId = ?',
+      whereArgs: [doctorId],
+    );
+  }
+  Future<List<Map<String, dynamic>>> getPendingDoctors() async {
+    final db = await database;
+    return await db.rawQuery('''
+      SELECT doctors.id, users.name, doctors.specialty, doctors.status
+      FROM doctors
+      INNER JOIN users ON doctors.userId = users.id
+      WHERE doctors.status = 'pending'
+    ''');
+  }
+  Future<int> updateDoctorStatus(int doctorId, String newStatus) async {
+    final db = await database;
+    return await db.update(
+      'doctors',
+      {'status': newStatus},
+      where: 'id = ?',
       whereArgs: [doctorId],
     );
   }

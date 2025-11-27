@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../../core/utils/security_utils.dart';
 import '../../../db/database_helper.dart';
 import '../../../models/user_model.dart';
+import '../../doctor/profile/pages/doctor_profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
 
@@ -39,15 +40,25 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         int role = currentUser.role;
-
-        if (role == 1) {
+        if(role==2){
+          var doctorProfile = await dbHelper.getDoctorDetails(currentUser.id!);
+          if(doctorProfile==null){
+            Navigator.pushReplacementNamed(
+              context,
+              AppRoutesName.DoctorProfileScreen,
+              arguments: currentUser.id,
+            );
+          }
+          else {
+             Navigator.pushReplacementNamed(context, AppRoutesName.DoctorHomeScreen,arguments: currentUser.id);
+            print("Go to Doctor Home");
+          }
+        }
+        else if (currentUser.role == 1) { // Admin
           // Navigator.pushReplacementNamed(context, AppRoutesName.adminHome);
-        } else if (role == 2) {
-          // Navigator.pushReplacementNamed(context, AppRoutesName.doctorHome);
-        } else {
+        } else { // Patient
           // Navigator.pushReplacementNamed(context, AppRoutesName.patientHome);
         }
-
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

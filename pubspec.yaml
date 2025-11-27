@@ -37,6 +37,7 @@ dependencies:
   path: ^1.9.0
   sqflite: ^2.4.1
   crypto: ^3.0.7
+  font_awesome_flutter: ^10.9.1
 
 dev_dependencies:
   flutter_test:
