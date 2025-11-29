@@ -21,13 +21,17 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
   final TextEditingController priceController = TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final ClinicRepository _repository=ClinicRepository.getInstance();
+  final ClinicRepository _repository = ClinicRepository.getInstance();
 
   int selectedID = 0;
   int index = 0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text('Pending Doctors'),
+      ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _repository.getPendingDoctors(),
         builder: (context, snapshot) {
@@ -104,14 +108,16 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
                   CustomButton(
                     function: () async {
                       if (_formKey.currentState!.validate()) {
-                        await _repository
-                            .updateDoctorStatus(selectedID, 'approved');
+                        await _repository.updateDoctorStatus(
+                            selectedID, 'approved');
 
                         localDoctors.removeAt(index);
                         specialityController.text = "";
                         priceController.text = "";
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Doctor Approved Successfully'),backgroundColor: Colors.blue,));
+                          content: Text('Doctor Approved Successfully'),
+                          backgroundColor: Colors.blue,
+                        ));
                         setState(() {});
                       }
                     },
@@ -122,16 +128,17 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
                     color: Colors.red,
                     function: () {
                       if (_formKey.currentState!.validate()) {
-                        _repository
-                            .updateDoctorStatus(selectedID, 'denied');
+                        _repository.updateDoctorStatus(selectedID, 'denied');
 
                         localDoctors.removeAt(index);
                         specialityController.text = "";
                         priceController.text = "";
 
                         setState(() {});
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Doctor denied'),backgroundColor: Colors.red,));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Doctor denied'),
+                          backgroundColor: Colors.red,
+                        ));
                       }
                     },
                     text: 'Decline Doctor',

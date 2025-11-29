@@ -1,5 +1,6 @@
 import 'package:clinic_appointment_system/core/routes/app_routes_name.dart';
 import 'package:clinic_appointment_system/modules/admin/home/pages/add_doctor_screen.dart';
+import 'package:clinic_appointment_system/modules/admin/home/pages/doctor_details_screen.dart';
 import 'package:clinic_appointment_system/modules/admin/home/pages/doctors_screen.dart';
 import 'package:clinic_appointment_system/modules/auth/pages/login_screen.dart';
 import 'package:clinic_appointment_system/modules/auth/pages/sign_up_screen.dart';
@@ -64,5 +65,15 @@ class AppRoutes {
     AppRoutesName.adminHomeScreen: (_) => AdminHome(),
     AppRoutesName.adminDoctorsScreen: (_) => DoctorsScreen(),
     AppRoutesName.adminAddDoctorScreen: (_) => AddDoctorScreen(),
+    AppRoutesName.adminDoctorDetailsScreen: (context) {
+      // 1. Get the arguments map from the context
+      final settings = ModalRoute.of(context)!.settings;
+
+      // 2. Safely cast the argument to int (it's the doctor ID)
+      final doctorId = settings.arguments as int;
+
+      // 3. Return the screen, passing the ID to the required parameter
+      return DoctorDetailScreen(doctorId: doctorId);
+    },
   };
 }

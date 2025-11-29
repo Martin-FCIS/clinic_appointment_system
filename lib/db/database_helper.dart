@@ -228,7 +228,9 @@ class DatabaseHelper {
       whereArgs: [appointmentId],
     );
   }
-  Future<int> rescheduleAppointment(int appointmentId, String newDate, String newTime) async {
+
+  Future<int> rescheduleAppointment(
+      int appointmentId, String newDate, String newTime) async {
     final db = await database;
     return await db.update(
       'appointments',
@@ -334,6 +336,7 @@ class DatabaseHelper {
       }
     }
   }
+
   Future<List<String>> getReservedTimes(int doctorId, String date) async {
     final db = await database;
     var result = await db.query(
@@ -346,6 +349,62 @@ class DatabaseHelper {
 
     return result.map((e) => e['time'] as String).toList();
   }
+
+  // ... inside class DatabaseHelper { ...
+// Add this method to get the doctor's info and their associated user name
+  Future<Map<String, dynamic>?> getDoctorAndUserInfo(int doctorId) async {
+    final db = await database;
+    var res = await db.rawQuery('''
+    SELECT 
+      T1.id, 
+      T1.userId, 
+      T1.specialty, 
+      T1.price, 
+      T1.status, 
+      T2.name, 
+      T2.email
+    FROM doctors T1
+    INNER JOIN users T2 ON T1.userId = T2.id
+    WHERE T1.id = ?
+  ''', [doctorId]);
+
+    if (res.isNotEmpty) {
+      return res.first;
+    }
+    return null;
+  }
+
+// Add this method to allow admin to update specialty and price
+  Future<int> updateDoctorData(
+      int doctorId, String specialty, double price) async {
+    final db = await database;
+    return await db.update(
+      'doctors',
+      {
+        'specialty': specialty,
+        'price': price,
+      },
+      where: 'id = ?',
+      whereArgs: [doctorId],
+    );
+  }
+
+// Add this method to delete the doctor (including the user account)
+  Future<int> deleteDoctorAndUser(int doctorId) async {
+    final db = await database;
+
+    // 1. Get the userId associated with the doctorId
+    var doctorResult = await db.query('doctors',
+        columns: ['userId'], where: 'id = ?', whereArgs: [doctorId]);
+
+    if (doctorResult.isEmpty) return 0; // Doctor not found
+
+    final userId = doctorResult.first['userId'] as int;
+
+    // 2. Delete the user (which should cascade delete the doctor and schedules)
+    return await deleteUser(userId); // deleteUser is already defined
+  }
+// ... rest of the class ...
 
   Future close() async {
     final db = await database;

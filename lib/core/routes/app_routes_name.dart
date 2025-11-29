@@ -14,4 +14,5 @@ class AppRoutesName {
   static const String adminHomeScreen = "admin_home_screen";
   static const String adminDoctorsScreen = "admin_doctors_screen";
   static const String adminAddDoctorScreen = "admin_add_doctor_screen";
+  static const String adminDoctorDetailsScreen = "admin_doctor_details_screen";
 }
