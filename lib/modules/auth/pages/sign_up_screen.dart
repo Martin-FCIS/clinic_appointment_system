@@ -1,6 +1,8 @@
 import 'package:clinic_appointment_system/core/constants/app_assets.dart';
+import 'package:clinic_appointment_system/core/routes/app_routes_name.dart';
 import 'package:clinic_appointment_system/models/user_factory.dart';
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_button.dart';
+import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -25,6 +27,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   TextEditingController rePassController = TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final ClinicRepository _repository=ClinicRepository.getInstance();
 
   RoleType _selectedRole = RoleType.PATIENT;
 
@@ -37,8 +40,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         return;
       }
 
-      final dbHelper = DatabaseHelper.getInstance();
-      bool isEmailExists = await dbHelper.isEmailExists(emailController.text);
+      bool isEmailExists = await _repository.isEmailExists(emailController.text);
       if (isEmailExists) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Email already registered! Try Login."),backgroundColor: Colors.red,),
@@ -53,15 +55,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         password: hashedPassword,
         role: _selectedRole,
       );
-      int resultId = await dbHelper.createUser(newUser.toMap());
+      int resultId = await _repository.registerUser(newUser);
 
       if (resultId > 0) {
         if (mounted) {
-          // check if widget is still on screen
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Account Created Successfully! with ID : $resultId'),backgroundColor: Colors.blue,),
           );
-          Navigator.pop(context);
+          Navigator.pushReplacementNamed(context,AppRoutesName.loginScreen);
         }
       } else {
         if (mounted) {

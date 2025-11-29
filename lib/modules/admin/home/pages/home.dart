@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/routes/app_routes_name.dart';
-import '../../../doctor/home/widgets/CategoryCard.dart';
+import '../../../doctor/home/widgets/category_card.dart';
 
 class AdminHome extends StatelessWidget {
   const AdminHome({super.key});

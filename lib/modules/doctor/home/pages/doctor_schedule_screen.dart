@@ -1,7 +1,5 @@
-import 'package:flutter/cupertino.dart';
+import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../db/database_helper.dart';
 import '../../../../models/schedule_model.dart';
 
 class DoctorScheduleScreen extends StatefulWidget {
@@ -14,6 +12,7 @@ class DoctorScheduleScreen extends StatefulWidget {
 }
 
 class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
+  final ClinicRepository _repository = ClinicRepository.getInstance();
   List<Schedule> _schedules = [];
   bool _isLoading = true;
   final List<String> _days = [
@@ -25,6 +24,7 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
     'Thursday',
     'Friday'
   ];
+
   // void _printAllDatabaseData() async {
   //   final db = await DatabaseHelper.getInstance().database;
   //
@@ -55,20 +55,18 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
   }
 
   void _loadSchedules() async {
-    final db = DatabaseHelper.getInstance();
-    final data = await db.getDoctorSchedules(widget.doctorId);
-
+    final data = await _repository.getDoctorSchedules(widget.doctorId);
     if (mounted) {
       setState(() {
-        _schedules = data.map((e) => Schedule.fromMap(e)).toList();
+        _schedules = data;
         _isLoading = false;
       });
     }
   }
 
   void _deleteSchedule(int scheduleId) async {
-    await DatabaseHelper.getInstance().deleteSchedule(scheduleId);
-    _loadSchedules(); // تحديث القائمة
+    await _repository.deleteSchedule(scheduleId);
+    _loadSchedules();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
           content: Text("Schedule removed successfully"),
@@ -79,10 +77,10 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
   void _showScheduleDialog({Schedule? existingSchedule}) {
     bool isEditing = existingSchedule != null;
     String selectedDay = existingSchedule?.day ?? _days[0];
-
-    // تحويل الـ String (10:00) لـ TimeOfDay عشان نعرضه
-    TimeOfDay? startTime = isEditing ? _parseTime(existingSchedule!.startTime) : null;
-    TimeOfDay? endTime = isEditing ? _parseTime(existingSchedule!.endTime) : null;
+    TimeOfDay? startTime =
+        isEditing ? _parseTime(existingSchedule!.startTime) : null;
+    TimeOfDay? endTime =
+        isEditing ? _parseTime(existingSchedule!.endTime) : null;
 
     showDialog(
       context: context,
@@ -96,9 +94,16 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
                 children: [
                   DropdownButtonFormField<String>(
                     value: selectedDay,
-                    items: _days.map((day) => DropdownMenuItem(value: day, child: Text(day))).toList(),
-                    onChanged: (val) => setDialogState(() => selectedDay = val!),
-                    decoration: InputDecoration(labelText: "Day", border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                    items: _days
+                        .map((day) =>
+                            DropdownMenuItem(value: day, child: Text(day)))
+                        .toList(),
+                    onChanged: (val) =>
+                        setDialogState(() => selectedDay = val!),
+                    decoration: InputDecoration(
+                        labelText: "Day",
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10))),
                   ),
                   const SizedBox(height: 20),
                   Row(
@@ -107,7 +112,8 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
                         child: OutlinedButton(
                           onPressed: () async {
                             final picked = await _pickTime(startTime, null);
-                            if (picked != null) setDialogState(() => startTime = picked);
+                            if (picked != null)
+                              setDialogState(() => startTime = picked);
                           },
                           child: Text(startTime?.format(context) ?? "Start"),
                         ),
@@ -119,7 +125,8 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
                         child: OutlinedButton(
                           onPressed: () async {
                             final picked = await _pickTime(null, startTime);
-                            if (picked != null) setDialogState(() => endTime = picked);
+                            if (picked != null)
+                              setDialogState(() => endTime = picked);
                           },
                           child: Text(endTime?.format(context) ?? "End"),
                         ),
@@ -129,61 +136,54 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
                 ],
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-            ElevatedButton(
-            onPressed: () async {
-            if (startTime != null && endTime != null) {
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Cancel")),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (startTime != null && endTime != null) {
+                      bool hasConflict = _isOverlapping(
+                          selectedDay, startTime!, endTime!,
+                          excludeId: existingSchedule?.id);
 
-            // ====================================================
-            // 🔥 هنا اللوجيك الجديد: التحقق من التداخل
-            // ====================================================
-            bool hasConflict = _isOverlapping(
-            selectedDay,
-            startTime!,
-            endTime!,
-            excludeId: existingSchedule?.id // بنبعت الـ ID لو تعديل عشان يتجاهله
-            );
+                      if (hasConflict) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                "Conflict! This time overlaps with another shift."),
+                            backgroundColor: Colors.red,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                        return;
+                      }
+                      Schedule scheduleObj = Schedule(
+                        id: existingSchedule?.id,
+                        doctorId: widget.doctorId,
+                        day: selectedDay,
+                        startTime: '${startTime!.hour}:${startTime!.minute}',
+                        endTime: '${endTime!.hour}:${endTime!.minute}',
+                      );
 
-            if (hasConflict) {
-            ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-            content: Text("Conflict! This time overlaps with another shift."),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-            ),
-            );
-            return; // 🛑 وقف هنا ومتحفظش
-            }
+                      if (isEditing) {
+                        // ... كود الـ Update ...
+                        await _repository.deleteSchedule(existingSchedule.id!);
+                        await _repository.addSchedule(scheduleObj);
+                      } else {
+                        await _repository.addSchedule(scheduleObj);
+                      }
 
-            // ====================================================
-            // باقي كود الحفظ العادي بتاعك زي ما هو
-            // ====================================================
-            Schedule scheduleObj = Schedule(
-            id: existingSchedule?.id,
-            doctorId: widget.doctorId,
-            day: selectedDay,
-            startTime: '${startTime!.hour}:${startTime!.minute}',
-            endTime: '${endTime!.hour}:${endTime!.minute}',
-            );
-
-            if (isEditing) {
-            // ... كود الـ Update ...
-            await DatabaseHelper.getInstance().deleteSchedule(existingSchedule!.id!);
-            await DatabaseHelper.getInstance().addSchedule(scheduleObj.toMap());
-            } else {
-            // ... كود الـ Add ...
-            await DatabaseHelper.getInstance().addSchedule(scheduleObj.toMap());
-            }
-
-            _loadSchedules();
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isEditing ? "Updated!" : "Added!"), backgroundColor: Colors.green));
-            } else {
-            // ... validation message ...
-            }
-            },
-            child: Text(isEditing ? "Update" : "Add"),
-            ),
+                      _loadSchedules();
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(isEditing ? "Updated!" : "Added!"),
+                          backgroundColor: Colors.green));
+                    } else {
+                      // ... validation message ...
+                    }
+                  },
+                  child: Text(isEditing ? "Update" : "Add"),
+                ),
               ],
             );
           },
@@ -191,6 +191,7 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
       },
     );
   }
+
   TimeOfDay _parseTime(String timeString) {
     final parts = timeString.split(":");
     return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
@@ -223,6 +224,7 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
     }
     return null;
   }
+
   int _timeStringToMinutes(String time) {
     List<String> parts = time.split(':');
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
@@ -232,7 +234,8 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
     return time.hour * 60 + time.minute;
   }
 
-  bool _isOverlapping(String day, TimeOfDay newStart, TimeOfDay newEnd, {int? excludeId}) {
+  bool _isOverlapping(String day, TimeOfDay newStart, TimeOfDay newEnd,
+      {int? excludeId}) {
     int newStartMin = _timeOfDayToMinutes(newStart);
     int newEndMin = _timeOfDayToMinutes(newEnd);
 
@@ -250,18 +253,28 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
     }
     return false;
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: InkWell(child: Icon(Icons.arrow_back,),onTap: () {
-          Navigator.pop(context);
-        },),
-        centerTitle: true,
+          leading: InkWell(
+            child: Icon(
+              Icons.arrow_back,
+            ),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          centerTitle: true,
           iconTheme: IconThemeData(color: Colors.white),
-          title: const Text("Manage Schedule",style: TextStyle(color: Colors.white,fontSize: 30 ),), backgroundColor: Colors.blue),
+          title: const Text(
+            "Manage Schedule",
+            style: TextStyle(color: Colors.white, fontSize: 30),
+          ),
+          backgroundColor: Colors.blue),
       floatingActionButton: FloatingActionButton(
-        onPressed: (){
+        onPressed: () {
           _showScheduleDialog();
         },
         backgroundColor: Colors.blue,
@@ -290,7 +303,8 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
                     return Card(
                       margin: const EdgeInsets.only(bottom: 10),
                       child: ListTile(
-                        onTap: () => _showScheduleDialog(existingSchedule: item),
+                        onTap: () =>
+                            _showScheduleDialog(existingSchedule: item),
                         leading: CircleAvatar(
                           backgroundColor: Colors.blue.shade50,
                           child: Text(item.day.substring(0, 3).toUpperCase(),
@@ -301,7 +315,6 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
                             style:
                                 const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text("${item.startTime} - ${item.endTime}"),
-                        // زرار الحذف
                         trailing: IconButton(
                           icon: const Icon(Icons.delete_outline,
                               color: Colors.red),

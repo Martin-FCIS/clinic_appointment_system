@@ -6,15 +6,15 @@ import '../../../../core/themes/themes.dart';
 class CustomDropDown extends StatefulWidget {
   final String label;
   final void Function(dynamic)? onChanged;
-  final String selectedValue;
+  final dynamic selectedValue;
   List<Map<String, dynamic>> list;
 
   CustomDropDown(
       {super.key,
-      required this.list,
-      required this.label,
-      required this.onChanged,
-      required this.selectedValue});
+        required this.list,
+        required this.label,
+        required this.onChanged,
+        this.selectedValue});
 
   @override
   State<CustomDropDown> createState() => _CustomDropDownState();

@@ -1,4 +1,5 @@
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_button.dart';
+import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -21,6 +22,7 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
   final TextEditingController priceController = TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final ClinicRepository _repository=ClinicRepository.getInstance();
 
   int selectedID = 0;
   int index = 0;
@@ -28,7 +30,7 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: DatabaseHelper.getInstance().getPendingDoctors(),
+        future: _repository.getPendingDoctors(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator());
@@ -40,7 +42,7 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
           final doctorsList = localDoctors;
           print(doctorsList);
           specialityController.text =
-              doctorsList!.isEmpty ? "" : doctorsList[0]['specialty'];
+              doctorsList.isEmpty ? "" : doctorsList[0]['specialty'];
           priceController.text =
               doctorsList.isEmpty ? "" : doctorsList[0]['price'].toString();
 
@@ -103,7 +105,7 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
                   CustomButton(
                     function: () async {
                       if (_formKey.currentState!.validate()) {
-                        await DatabaseHelper.getInstance()
+                        await _repository
                             .updateDoctorStatus(selectedID, 'approved');
 
                         localDoctors.removeAt(index);
@@ -121,7 +123,7 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
                     color: Colors.red,
                     function: () {
                       if (_formKey.currentState!.validate()) {
-                        DatabaseHelper.getInstance()
+                        _repository
                             .updateDoctorStatus(selectedID, 'denied');
 
                         localDoctors.removeAt(index);

@@ -1,67 +1,49 @@
-import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/const_variables.dart';
 import '../../../../core/utils/security_utils.dart';
-import '../../../../models/doctor_model.dart';
 import '../../../../models/user_model.dart';
+import '../../../../repositories/clinic_repository.dart';
 import '../../../auth/widgets/custom_button.dart';
 import '../../../auth/widgets/custom_text_form_field.dart';
-import '../../../core_widgets/custom_dropdown_adapter.dart';
 
-class DoctorProfileScreen extends StatefulWidget {
+class PatientProfileScreen extends StatefulWidget {
   final int userId;
 
-  const DoctorProfileScreen({super.key, required this.userId});
+  const PatientProfileScreen({super.key, required this.userId});
 
   @override
-  State<DoctorProfileScreen> createState() => _DoctorProfileScreen();
+  State<PatientProfileScreen> createState() => _PatientProfileScreenState();
 }
 
-class _DoctorProfileScreen extends State<DoctorProfileScreen> {
-  // Controllers
+class _PatientProfileScreenState extends State<PatientProfileScreen> {
   TextEditingController nameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
-  TextEditingController priceController = TextEditingController();
-
-  // Password Controllers
   TextEditingController currentPassController = TextEditingController();
   TextEditingController newPassController = TextEditingController();
   TextEditingController confirmPassController = TextEditingController();
 
   User? _currentUser;
   bool _isLoading = true;
-  String? _selectedSpeciality;
-
-  Doctor? _initialDoctorData;
   User? _initialUserData;
-
   final ClinicRepository _repository = ClinicRepository.getInstance();
+
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
     _loadExistingData();
   }
 
   void _loadExistingData() async {
     var userMap = await _repository.getUserById(widget.userId);
-    var doctorMap = await _repository.getDoctorDetails(widget.userId);
-
-    if (userMap != null && doctorMap != null) {
+    if (userMap != null) {
       User user = userMap;
-      Doctor doctor = doctorMap;
       nameController.text = user.name;
       emailController.text = user.email;
-      priceController.text = doctor.price.toString();
-      _selectedSpeciality = doctor.specialty;
-
       if (mounted) {
         setState(() {
           _currentUser = user;
           _initialUserData = user;
-          _initialDoctorData = doctor;
-
           _isLoading = false;
         });
       }
@@ -69,40 +51,23 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
   }
 
   void _updateProfile() async {
-    if (_selectedSpeciality == null ||
-        priceController.text.trim().isEmpty ||
-        nameController.text.trim().isEmpty||emailController.text.trim().isEmpty) {
+    if (nameController.text.isEmpty || emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Please fill basic info"),
           backgroundColor: Colors.red));
       return;
     }
-    if(!SecurityUtils.isValidEmail(emailController.text.trim())){
+    if (!SecurityUtils.isValidEmail(emailController.text.trim())) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Invalid Email Format (e.g. name@domain.com)"),
           backgroundColor: Colors.red));
-      emailController.text=_initialUserData!.email;
+      emailController.text = _initialUserData!.email;
       return;
     }
-    if (double.tryParse(priceController.text.trim()) == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("Invalid Price! Please enter a number."),
-          backgroundColor: Colors.red));
-      priceController.clear();
-      return;
-    }
-
     bool passwordChanged = newPassController.text.trim().isNotEmpty;
-
     bool personalInfoChanged = nameController.text != _initialUserData!.name ||
         emailController.text != _initialUserData!.email;
-    double newPrice = double.tryParse(priceController.text) ?? 0.0;
-
-    bool clinicInfoChanged =
-        newPrice != _initialDoctorData!.price ||
-            _selectedSpeciality != _initialDoctorData!.specialty;
-
-    if (!passwordChanged && !personalInfoChanged && !clinicInfoChanged) {
+    if (!passwordChanged && !personalInfoChanged) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("No changes made."),
         backgroundColor: Colors.grey,
@@ -110,9 +75,7 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
       ));
       return;
     }
-
     String finalPassword = _currentUser!.password;
-
     if (passwordChanged) {
       if (currentPassController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -145,7 +108,7 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
         currentPassController.clear();
         return;
       }
-      if(!SecurityUtils.isStrongPassword(newPassController.text)){
+      if (!SecurityUtils.isStrongPassword(newPassController.text)) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text("Weak Password! Use 8+ chars (letters & numbers)"),
             backgroundColor: Colors.red));
@@ -157,7 +120,6 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
 
       finalPassword = SecurityUtils.hashPassword(newPassController.text);
     }
-
     User updatedUser = User(
       id: _currentUser!.id,
       name: nameController.text,
@@ -166,17 +128,6 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
       role: _currentUser!.role,
     );
     await _repository.updateUser(updatedUser);
-
-    String oldStatus = _initialDoctorData!.status;
-
-    Doctor updatedDoctor = Doctor(
-      userId: widget.userId,
-      specialty: _selectedSpeciality!,
-      price: newPrice,
-      status: oldStatus,
-    );
-    await _repository.saveDoctorProfile(updatedDoctor);
-
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Profile Updated Successfully!"),
@@ -263,34 +214,10 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
 
               const SizedBox(height: 25),
               const Divider(),
-              const SizedBox(height: 10),
+              SizedBox(height: 200,),
+              CustomButton(function: _updateProfile, text: "Save Changes"),
 
               // Clinic Info
-              const Text("Clinic Info",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 15),
-              CustomDropDownAdapter(
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedSpeciality = val;
-                    });
-                  },
-                  selectedValue: _selectedSpeciality,
-                  list: ConstVariables.speciality,
-                  label: "Speciality"),
-              const SizedBox(height: 15),
-              CustomTextFormField(
-                  Controller: priceController,
-                  hintText: "Session Price",
-                  icon: const Icon(Icons.monetization_on),
-                  isPass: false,
-                  isSignUp: false,
-                  isEmail: false,
-                  isPrice: true),
-
-              const SizedBox(height: 40),
-              CustomButton(function: _updateProfile, text: "Save Changes"),
-              const SizedBox(height: 20),
             ],
           ),
         ),

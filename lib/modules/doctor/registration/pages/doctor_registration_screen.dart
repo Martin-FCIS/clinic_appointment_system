@@ -3,13 +3,14 @@ import 'package:clinic_appointment_system/core/routes/app_routes_name.dart';
 import 'package:clinic_appointment_system/core/themes/themes.dart';
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_button.dart';
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_text_form_field.dart';
-import 'package:clinic_appointment_system/modules/core_widets/custom_drop_down_adapter.dart';
+import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../../db/database_helper.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/schedule_model.dart';
 import '../../../../models/user_model.dart';
+import '../../../core_widgets/custom_dropdown_adapter.dart';
 
 class WorkDayHelper {
   String dayName;
@@ -30,10 +31,12 @@ class DoctorRegistrationScreen extends StatefulWidget {
   DoctorRegistrationScreen({super.key, required this.userId});
 
   @override
-  State<DoctorRegistrationScreen> createState() => _DoctorRegistrationScreenState();
+  State<DoctorRegistrationScreen> createState() =>
+      _DoctorRegistrationScreenState();
 }
 
 class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
+  final ClinicRepository _repository = ClinicRepository.getInstance();
   TextEditingController priceController = TextEditingController();
   User? _currentUser;
   bool _isLoading = true;
@@ -56,7 +59,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
   }
 
   void _fetchUserData() async {
-    var user = await DatabaseHelper.getInstance().getUserById(widget.userId);
+    var user = await _repository.getUserById(widget.userId);
     if (user != null) {
       setState(() {
         _currentUser = user;
@@ -75,10 +78,14 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
 
     if (picked != null) {
       // 1. شرط الدقائق (00 أو 30 فقط) ⏰
-      if (picked.minute != 0 && picked.minute!=15 && picked.minute != 30 &&picked.minute!=45) {
+      if (picked.minute != 0 &&
+          picked.minute != 15 &&
+          picked.minute != 30 &&
+          picked.minute != 45) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Please select valid time (e.g. 7:00, 7:15 , 7:30 , 7:45)"),
+            content: Text(
+                "Please select valid time (e.g. 7:00, 7:15 , 7:30 , 7:45)"),
             backgroundColor: Colors.red,
           ),
         );
@@ -91,11 +98,11 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
         if (day.endTime != null) {
           int endInMinutes = day.endTime!.hour * 60 + day.endTime!.minute;
 
-
           if (endInMinutes - pickedInMinutes < 15) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text("Start time must be before End time by at least 15 mins"),
+                content: Text(
+                    "Start time must be before End time by at least 15 mins"),
                 backgroundColor: Colors.red,
               ),
             );
@@ -104,7 +111,6 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
         }
 
         setState(() => day.startTime = picked);
-
       } else {
         if (day.startTime != null) {
           int startInMinutes = day.startTime!.hour * 60 + day.startTime!.minute;
@@ -112,7 +118,8 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
           if (pickedInMinutes - startInMinutes < 15) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text("End time must be after Start time by at least 15 mins"),
+                content: Text(
+                    "End time must be after Start time by at least 15 mins"),
                 backgroundColor: Colors.red,
               ),
             );
@@ -126,8 +133,10 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
 
   void _saveAllData() async {
     if (_selectedSpeciality == null || priceController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please fill Price & Specialty"),backgroundColor: Colors.red,));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Please fill Price & Specialty"),
+        backgroundColor: Colors.red,
+      ));
       return;
     }
 
@@ -138,70 +147,58 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
       status: 'pending',
     );
 
-    final db = DatabaseHelper.getInstance();
+    await _repository.saveDoctorProfile(newDoctor);
 
-    await db.saveDoctorProfile(newDoctor.toMap());
+    var savedDoctor = await _repository.getDoctorDetails(widget.userId);
+    if (savedDoctor != null && savedDoctor.id != null) {
+      int realDoctorId = savedDoctor.id!;
+      await _repository.clearDoctorSchedules(realDoctorId);
+      int schedulesAdded = 0;
 
-    var doctorMap = await db.getDoctorDetails(widget.userId);
+      for (var uiDay in _uiDays) {
+        if (uiDay.isSelected &&
+            uiDay.startTime != null &&
+            uiDay.endTime != null) {
+          Schedule schedule = Schedule(
+            doctorId: realDoctorId,
+            day: uiDay.dayName,
+            startTime: '${uiDay.startTime!.hour}:${uiDay.startTime!.minute}',
+            endTime: '${uiDay.endTime!.hour}:${uiDay.endTime!.minute}',
+          );
 
-    Doctor savedDoctor = Doctor.fromMap(doctorMap!);
-    int realDoctorId = savedDoctor.id!;
-
-    await db.deleteSchedulesByDoctorId(realDoctorId);
-    int schedulesAdded = 0;
-
-    for (var uiDay in _uiDays) {
-      if (uiDay.isSelected &&
-          uiDay.startTime != null &&
-          uiDay.endTime != null) {
-        Schedule schedule = Schedule(
-          doctorId: realDoctorId,
-          day: uiDay.dayName,
-          startTime: '${uiDay.startTime!.hour}:${uiDay.startTime!.minute}',
-          endTime: '${uiDay.endTime!.hour}:${uiDay.endTime!.minute}',
+          await _repository.addSchedule(schedule);
+          schedulesAdded++;
+        }
+      }
+      // ============================================================
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                "Request Sent! Pending Admin Approval. ($schedulesAdded shifts added)"),
+            backgroundColor: Colors.blue,
+            duration: const Duration(seconds: 3),
+          ),
         );
 
-        await db.addSchedule(schedule.toMap());
-        schedulesAdded++;
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutesName.doctorHomeScreen,
+              (route) => false,
+          arguments: _currentUser!.id,
+        );
       }
     }
-    print("\n🔍 ============ DEBUGGING DATABASE START ============");
-
-    final dbInstance = DatabaseHelper.getInstance();
-    final dbb = await dbInstance.database;
-
-
-    var allDoctors = await dbb.query('doctors');
-    print("👨‍⚕️ DOCTORS TABLE (${allDoctors.length} rows):");
-    for (var row in allDoctors) {
-      print(row);
+    else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Error: Could not retrieve doctor profile ID"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
-
-    var allSchedules = await dbb.query('schedules');
-    print("\n📅 SCHEDULES TABLE (${allSchedules.length} rows):");
-    for (var row in allSchedules) {
-      print(row);
-    }
-
-    print("🔍 ============ DEBUGGING DATABASE END ============\n");
-
-    // ============================================================
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              "Request Sent! Pending Admin Approval. ($schedulesAdded shifts added)"),
-          backgroundColor: Colors.blue,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        AppRoutesName.DoctorHomeScreen,
-            (route) => false,
-        arguments: _currentUser!.id,
-      );    }
   }
 
   @override
@@ -258,11 +255,12 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
               height: 10,
             ),
             CustomDropDownAdapter(
-              onChanged: (val) {
-                _selectedSpeciality=val;
-              },
+                onChanged: (val) {
+                  _selectedSpeciality = val;
+                },
                 selectedValue: _selectedSpeciality,
-                list: ConstVariables.speciality, label: "Speciality:"),
+                list: ConstVariables.speciality,
+                label: "Speciality:"),
             SizedBox(
               height: 5,
             ),
@@ -281,8 +279,13 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
             SizedBox(
               height: 20,
             ),
-            Text("Enter your available slots per week :",style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),),
-            SizedBox(height: 5,),
+            Text(
+              "Enter your available slots per week :",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(
+              height: 5,
+            ),
             Expanded(
               flex: 50,
               child: ListView.builder(
@@ -334,7 +337,6 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
             ),
             Spacer(),
             CustomButton(function: _saveAllData, text: "Confirm"),
-
           ],
         ),
       ),

@@ -27,7 +27,14 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: _createDB,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
+    );
   }
 
   Future _createDB(Database db, int version) async {
@@ -66,17 +73,18 @@ class DatabaseHelper {
 
     // Status: 'pending', 'confirmed', 'completed', 'cancelled'
     await db.execute('''
-      CREATE TABLE appointments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        patientId INTEGER NOT NULL,
-        doctorId INTEGER NOT NULL,
-        date TEXT NOT NULL,
-        time TEXT NOT NULL,
-        status TEXT DEFAULT 'pending',
-        FOREIGN KEY (patientId) REFERENCES users (id),
-        FOREIGN KEY (doctorId) REFERENCES doctors (id)
-      )
-    ''');
+  CREATE TABLE appointments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patientId INTEGER NOT NULL,
+    doctorId INTEGER NOT NULL,
+    date TEXT NOT NULL,
+    time TEXT NOT NULL,
+    status TEXT DEFAULT 'pending',
+    paymentMethod TEXT NOT NULL, -- (جديد) 'Cash' or 'Credit Card'
+    FOREIGN KEY (patientId) REFERENCES users (id),
+    FOREIGN KEY (doctorId) REFERENCES doctors (id)
+  )
+''');
     String adminPass = SecurityUtils.hashPassword("admin123");
     User adminUser = UserFactory.createUser(
       name: 'System Admin',
@@ -129,6 +137,7 @@ class DatabaseHelper {
     }
     return null;
   }
+
   Future<int> updateUser(User user) async {
     final db = await database;
     return await db.update(
@@ -138,6 +147,7 @@ class DatabaseHelper {
       whereArgs: [user.id],
     );
   }
+
   Future<int> deleteUser(int userId) async {
     final db = await database;
     return await db.delete(
@@ -146,6 +156,7 @@ class DatabaseHelper {
       whereArgs: [userId],
     );
   }
+
   Future<int> saveDoctorProfile(Map<String, dynamic> doctorData) async {
     final db = await database;
 
@@ -199,9 +210,8 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> getAllDoctors() async {
     final db = await database;
-    // هنا بنعمل JOIN عشان نجيب اسم الدكتور من جدول الـ users وتخصصه من جدول الـ doctors
     return await db.rawQuery('''
-      SELECT doctors.id, users.name, doctors.specialty, doctors.price 
+      SELECT doctors.id, users.name, doctors.userId, doctors.status,doctors.specialty, doctors.price 
       FROM doctors
       INNER JOIN users ON doctors.userId = users.id
       WHERE doctors.status = 'approved'  -- (New) الشرط ده مهم جداً
@@ -218,12 +228,27 @@ class DatabaseHelper {
       whereArgs: [appointmentId],
     );
   }
+  Future<int> rescheduleAppointment(int appointmentId, String newDate, String newTime) async {
+    final db = await database;
+    return await db.update(
+      'appointments',
+      {
+        'date': newDate,
+        'time': newTime,
+        // اختياري: ممكن ترجعه 'pending' تاني عشان المريض يوافق عليه،
+        // أو تخليه 'approved' لو الدكتور هو اللي غيره بالاتفاق.
+        'status': 'approved',
+      },
+      where: 'id = ?',
+      whereArgs: [appointmentId],
+    );
+  }
 
   Future<List<Map<String, dynamic>>> getPatientAppointments(
       int patientId) async {
     final db = await database;
     return await db.rawQuery('''
-      SELECT appointments.*, users.name as doctorName, doctors.specialty 
+      SELECT appointments.*, users.name as doctorName, doctors.specialty,doctors.price 
       FROM appointments
       INNER JOIN doctors ON appointments.doctorId = doctors.id
       INNER JOIN users ON doctors.userId = users.id
@@ -262,54 +287,166 @@ class DatabaseHelper {
     );
   }
 
+  Future<void> updateExpiredAppointments() async {
+    final db = await database;
+    List<Map<String, dynamic>> appointments = await db.rawQuery('''
+      SELECT * FROM appointments 
+      WHERE status IN ('approved', 'pending')
+    ''');
+
+    DateTime now = DateTime.now();
+
+    for (var app in appointments) {
+      try {
+        String dateStr = app['date'];
+        String timeStr = app['time'];
+
+        DateTime appDate = DateTime.parse(dateStr);
+        List<String> timeParts = timeStr.split(':');
+        int hour = int.parse(timeParts[0]);
+        int minute = int.parse(timeParts[1]);
+
+        DateTime appointmentDateTime =
+            DateTime(appDate.year, appDate.month, appDate.day, hour, minute);
+
+        if (appointmentDateTime.isBefore(now)) {
+          String currentStatus = app['status'];
+          String newStatus;
+
+          if (currentStatus == 'approved') {
+            newStatus = 'completed';
+          } else {
+            newStatus = 'cancelled';
+          }
+
+          await db.update(
+            'appointments',
+            {'status': newStatus},
+            where: 'id = ?',
+            whereArgs: [app['id']],
+          );
+
+          print(
+              "✅ Appointment ${app['id']} updated from $currentStatus to $newStatus");
+        }
+      } catch (e) {
+        print("Error processing appointment ${app['id']}: $e");
+      }
+    }
+  }
+  Future<List<String>> getReservedTimes(int doctorId, String date) async {
+    final db = await database;
+    var result = await db.query(
+      'appointments',
+      columns: ['time'],
+      // بنجيب أي حجز مش ملغي (سواء pending أو approved أو completed)
+      where: 'doctorId = ? AND date = ? AND status != ?',
+      whereArgs: [doctorId, date, 'cancelled'],
+    );
+
+    return result.map((e) => e['time'] as String).toList();
+  }
+
   Future close() async {
     final db = await database;
     db.close();
   }
+
   // دالة مؤقتة للاختبار: بتضيف مريض وحجوزات وهمية
-  Future<void> insertDummyAppointments(int doctorId) async {
-    final db = await database;
-
-    // 1. نضيف مريض وهمي (لو مش موجود)
-    int patientId;
-    var patientCheck = await db.query('users', where: 'email = ?', whereArgs: ['patient@test.com']);
-
-    if (patientCheck.isEmpty) {
-      patientId = await db.insert('users', {
-        'name': 'Test Patient',
-        'email': 'patient@test.com',
-        'password': '123', // مش مهم قوي هنا
-        'role': 3, // 3 = Patient
-      });
-    } else {
-      patientId = patientCheck.first['id'] as int;
-    }
-
-    // 2. نضيف 3 حجوزات (Pending) للدكتور ده
-    await db.insert('appointments', {
-      'patientId': patientId,
-      'doctorId': doctorId,
-      'date': '2023-11-20',
-      'time': '10:00 AM',
-      'status': 'pending',
-    });
-
-    await db.insert('appointments', {
-      'patientId': patientId,
-      'doctorId': doctorId,
-      'date': '2023-11-21',
-      'time': '05:30 PM',
-      'status': 'pending',
-    });
-
-    await db.insert('appointments', {
-      'patientId': patientId,
-      'doctorId': doctorId,
-      'date': '2023-11-22',
-      'time': '01:00 PM',
-      'status': 'approved', // واحد مقبول جاهز للتجربة
-    });
-
-    print("✅ Dummy Appointments Added for Doctor ID: $doctorId");
-  }
+  // Future<void> insertDummyAppointments(int doctorId) async {
+  //   final db = await database;
+  //
+  //   // 1. نضيف مريض وهمي (لو مش موجود)
+  //   int patientId;
+  //   var patientCheck = await db
+  //       .query('users', where: 'email = ?', whereArgs: ['patient@test.com']);
+  //
+  //   if (patientCheck.isEmpty) {
+  //     patientId = await db.insert('users', {
+  //       'name': 'Test Patient',
+  //       'email': 'patient@test.com',
+  //       'password': '123', // مش مهم قوي هنا
+  //       'role': 3, // 3 = Patient
+  //     });
+  //   } else {
+  //     patientId = patientCheck.first['id'] as int;
+  //   }
+  //
+  //   // 2. نضيف 3 حجوزات (Pending) للدكتور ده
+  //   await db.insert('appointments', {
+  //     'patientId': patientId,
+  //     'doctorId': doctorId,
+  //     'date': '2023-11-20',
+  //     'time': '10:00 AM',
+  //     'status': 'pending',
+  //   });
+  //
+  //   await db.insert('appointments', {
+  //     'patientId': patientId,
+  //     'doctorId': doctorId,
+  //     'date': '2023-11-21',
+  //     'time': '05:30 PM',
+  //     'status': 'pending',
+  //   });
+  //
+  //   await db.insert('appointments', {
+  //     'patientId': patientId,
+  //     'doctorId': doctorId,
+  //     'date': '2023-11-22',
+  //     'time': '01:00 PM',
+  //     'status': 'approved', // واحد مقبول جاهز للتجربة
+  //   });
+  //
+  //   print("✅ Dummy Appointments Added for Doctor ID: $doctorId");
+  // }
+  //
+  // // دالة لإضافة حجوزات وهمية لمريض معين (للاختبار)
+  // Future<void> insertDummyPatientAppointments(int patientId) async {
+  //   final db = await database;
+  //   int doctorId;
+  //   var doctors = await db.query('doctors');
+  //
+  //   if (doctors.isNotEmpty) {
+  //     doctorId = doctors.last['id'] as int;
+  //   } else {
+  //     // لو مفيش دكاترة خالص، اخلق دكتور وهمي سريعاً
+  //     int userId = await db.insert('users', {
+  //       'name': 'Dr. Test',
+  //       'email': 'doc@test.com',
+  //       'password': '123',
+  //       'role': 2
+  //     });
+  //     doctorId = await db.insert('doctors', {
+  //       'userId': userId,
+  //       'specialty': 'General',
+  //       'price': 150.0,
+  //       'status': 'approved'
+  //     });
+  //   }
+  //
+  //   // 2. إضافة حجوزات بحالات مختلفة
+  //   await db.insert('appointments', {
+  //     'patientId': patientId,
+  //     'doctorId': doctorId,
+  //     'date': '2025-12-01',
+  //     'time': '10:00',
+  //     'status': 'pending', // برتقالي
+  //   });
+  //
+  //   await db.insert('appointments', {
+  //     'patientId': patientId,
+  //     'doctorId': doctorId,
+  //     'date': '2025-12-02',
+  //     'time': '05:30',
+  //     'status': 'approved', // أخضر
+  //   });
+  //
+  //   await db.insert('appointments', {
+  //     'patientId': patientId,
+  //     'doctorId': doctorId,
+  //     'date': '2025-11-20',
+  //     'time': '01:00',
+  //     'status': 'approved', // أحمر
+  //   });
+  // }
 }

@@ -2,6 +2,7 @@ import 'package:clinic_appointment_system/core/constants/app_assets.dart';
 import 'package:clinic_appointment_system/core/routes/app_routes_name.dart';
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_button.dart';
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_text_form_field.dart';
+import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/security_utils.dart';
@@ -18,17 +19,17 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passController = TextEditingController();
-  static GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final ClinicRepository _repository = ClinicRepository.getInstance();
+
   void _login() async {
     if (_formKey.currentState!.validate()) {
-      var dbHelper = DatabaseHelper.getInstance();
-
       String hashedPassword = SecurityUtils.hashPassword(passController.text);
 
-      var user = await dbHelper.loginUser(emailController.text, hashedPassword);
+      User? currentUser = await _repository.login(emailController.text, hashedPassword);
 
-      if (user != null) {
-        User currentUser = User.fromMap(user);
+      if (currentUser != null) {
+
         print("Login Success: ${currentUser.name} - Role: ${currentUser.role}");
         emailController.clear();
         passController.clear();
@@ -41,16 +42,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
         int role = currentUser.role;
         if (role == 2) {
-          var doctorProfile = await dbHelper.getDoctorDetails(currentUser.id!);
+          //doctor
+          var doctorProfile = await _repository.getDoctorDetails(currentUser.id!);
           if (doctorProfile == null) {
             Navigator.pushReplacementNamed(
               context,
-              AppRoutesName.DoctorRegistrationScreen,
+              AppRoutesName.doctorRegistrationScreen,
               arguments: currentUser.id,
             );
           } else {
             Navigator.pushReplacementNamed(
-                context, AppRoutesName.DoctorHomeScreen,
+                context, AppRoutesName.doctorHomeScreen,
                 arguments: currentUser.id);
             print("Go to Doctor Home");
           }
@@ -60,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
               context, AppRoutesName.adminHomeScreen);
         } else {
           // Patient
-          // Navigator.pushReplacementNamed(context, AppRoutesName.patientHome);
+           Navigator.pushReplacementNamed(context, AppRoutesName.patientHomeScreen,arguments: currentUser.id);
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -71,6 +73,33 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     }
+  }
+  void _printAllDatabaseData() async {
+    final db = await DatabaseHelper.getInstance().database;
+
+    print("\n📦 ========= DATABASE CONTENT ========= 📦");
+
+    // 1. طباعة الدكاترة
+    var doctors = await db.query('doctors');
+    print("👨‍⚕️ Doctors Table (${doctors.length}):");
+    for (var d in doctors) print(d);
+
+    // 2. طباعة المواعيد
+    var schedules = await db.query('schedules');
+    print("\n📅 Schedules Table (${schedules.length}):");
+    for (var s in schedules) print(s);
+
+    // 3. طباعة المستخدمين (عشان تتأكد من الـ IDs)
+    var users = await db.query('users');
+    print("\n👤 Users Table (${users.length}):");
+    for (var u in users) print(u);
+
+    // 4. طباعة الحجوزات (Appointments) 🏥
+    var appointments = await db.query('appointments');
+    print("\n🏥 Appointments Table (${appointments.length}):");
+    for (var a in appointments) print(a);
+
+    print("=========================================\n");
   }
 
   @override
@@ -127,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontWeight: FontWeight.bold),
                       ),
                       onTap: () {
-                        Navigator.pushNamed(
+                        Navigator.pushReplacementNamed(
                             context, AppRoutesName.signUpScreen);
                       },
                     ),
@@ -135,7 +164,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 Spacer(),
                 CustomButton(
-                  function: _login,
+                  function: (){
+                    _printAllDatabaseData();
+                    _login();
+
+                  },
                   text: "Login",
                 ),
                 Spacer(),
