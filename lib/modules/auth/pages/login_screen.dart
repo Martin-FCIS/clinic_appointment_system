@@ -26,10 +26,10 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       String hashedPassword = SecurityUtils.hashPassword(passController.text);
 
-      User? currentUser = await _repository.login(emailController.text, hashedPassword);
+      User? currentUser =
+          await _repository.login(emailController.text, hashedPassword);
 
       if (currentUser != null) {
-
         print("Login Success: ${currentUser.name} - Role: ${currentUser.role}");
         emailController.clear();
         passController.clear();
@@ -43,7 +43,8 @@ class _LoginScreenState extends State<LoginScreen> {
         int role = currentUser.role;
         if (role == 2) {
           //doctor
-          var doctorProfile = await _repository.getDoctorDetails(currentUser.id!);
+          var doctorProfile =
+              await _repository.getDoctorDetails(currentUser.id!);
           if (doctorProfile == null) {
             Navigator.pushReplacementNamed(
               context,
@@ -51,8 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
               arguments: currentUser.id,
             );
           } else {
-            Navigator.pushReplacementNamed(
-                context, AppRoutesName.doctorHomeScreen,
+            Navigator.pushReplacementNamed(context, AppRoutesName.doctorProxy,
                 arguments: currentUser.id);
             print("Go to Doctor Home");
           }
@@ -62,7 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
               context, AppRoutesName.adminHomeScreen);
         } else {
           // Patient
-           Navigator.pushReplacementNamed(context, AppRoutesName.patientHomeScreen,arguments: currentUser.id);
+          Navigator.pushReplacementNamed(
+              context, AppRoutesName.patientHomeScreen,
+              arguments: currentUser.id);
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -74,6 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
+
   void _printAllDatabaseData() async {
     final db = await DatabaseHelper.getInstance().database;
 
@@ -164,10 +167,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 Spacer(),
                 CustomButton(
-                  function: (){
+                  function: () {
                     _printAllDatabaseData();
                     _login();
-
                   },
                   text: "Login",
                 ),

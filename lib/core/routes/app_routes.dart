@@ -4,6 +4,7 @@ import 'package:clinic_appointment_system/modules/admin/home/pages/doctor_detail
 import 'package:clinic_appointment_system/modules/admin/home/pages/doctors_screen.dart';
 import 'package:clinic_appointment_system/modules/auth/pages/login_screen.dart';
 import 'package:clinic_appointment_system/modules/auth/pages/sign_up_screen.dart';
+import 'package:clinic_appointment_system/modules/doctor/authorization/doctor_home_proxy.dart';
 import 'package:clinic_appointment_system/modules/doctor/home/pages/doctor_appointments_screen.dart';
 import 'package:clinic_appointment_system/modules/doctor/home/pages/doctor_schedule_screen.dart';
 import 'package:clinic_appointment_system/modules/patient/home/pages/patient_appointments_screen.dart';
@@ -24,6 +25,10 @@ class AppRoutes {
     AppRoutesName.doctorRegistrationScreen: (context) {
       final id = ModalRoute.of(context)!.settings.arguments as int;
       return DoctorRegistrationScreen(userId: id);
+    },
+    AppRoutesName.doctorProxy: (context) {
+      final id = ModalRoute.of(context)!.settings.arguments as int;
+      return DoctorHomeProxy(userId: id);
     },
     AppRoutesName.doctorHomeScreen: (context) {
       final id = ModalRoute.of(context)!.settings.arguments as int;
@@ -66,13 +71,8 @@ class AppRoutes {
     AppRoutesName.adminDoctorsScreen: (_) => DoctorsScreen(),
     AppRoutesName.adminAddDoctorScreen: (_) => AddDoctorScreen(),
     AppRoutesName.adminDoctorDetailsScreen: (context) {
-      // 1. Get the arguments map from the context
       final settings = ModalRoute.of(context)!.settings;
-
-      // 2. Safely cast the argument to int (it's the doctor ID)
       final doctorId = settings.arguments as int;
-
-      // 3. Return the screen, passing the ID to the required parameter
       return DoctorDetailScreen(doctorId: doctorId);
     },
   };

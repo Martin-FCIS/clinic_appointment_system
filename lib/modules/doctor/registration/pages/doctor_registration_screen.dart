@@ -4,8 +4,8 @@ import 'package:clinic_appointment_system/core/themes/themes.dart';
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_button.dart';
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_text_form_field.dart';
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 import '../../../../models/doctor_model.dart';
 import '../../../../models/schedule_model.dart';
 import '../../../../models/user_model.dart';
@@ -182,13 +182,12 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
 
         Navigator.pushNamedAndRemoveUntil(
           context,
-          AppRoutesName.doctorHomeScreen,
-              (route) => false,
+          AppRoutesName.doctorProxy,
+          (route) => false,
           arguments: _currentUser!.id,
         );
       }
-    }
-    else {
+    } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
