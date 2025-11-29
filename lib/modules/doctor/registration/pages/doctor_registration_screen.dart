@@ -6,7 +6,6 @@ import 'package:clinic_appointment_system/modules/auth/widgets/custom_text_form_
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../../../../db/database_helper.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/schedule_model.dart';
 import '../../../../models/user_model.dart';

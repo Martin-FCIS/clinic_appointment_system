@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/security_utils.dart';
-import '../../../db/database_helper.dart';
 import '../widgets/custom_text_form_field.dart';
 
 class SignUpScreen extends StatefulWidget {

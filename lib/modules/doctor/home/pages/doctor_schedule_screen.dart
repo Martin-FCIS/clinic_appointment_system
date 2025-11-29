@@ -78,9 +78,9 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
     bool isEditing = existingSchedule != null;
     String selectedDay = existingSchedule?.day ?? _days[0];
     TimeOfDay? startTime =
-        isEditing ? _parseTime(existingSchedule!.startTime) : null;
+        isEditing ? _parseTime(existingSchedule.startTime) : null;
     TimeOfDay? endTime =
-        isEditing ? _parseTime(existingSchedule!.endTime) : null;
+        isEditing ? _parseTime(existingSchedule.endTime) : null;
 
     showDialog(
       context: context,

@@ -3,7 +3,6 @@ import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../../../../db/database_helper.dart';
 import '../../../auth/widgets/custom_text_form_field.dart';
 import '../../../core_widgets/custom_dropdown.dart';
 
