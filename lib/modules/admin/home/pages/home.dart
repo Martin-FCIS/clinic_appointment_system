@@ -15,8 +15,14 @@ class AdminHome extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            const CategoryCard(
-                icon: FontAwesomeIcons.calendar, catName: "Appointments"),
+            CategoryCard(
+              icon: FontAwesomeIcons.calendar,
+              catName: "Appointments",
+              onTap: () {
+                Navigator.pushNamed(
+                    context, AppRoutesName.adminAppointmentsScreen);
+              },
+            ),
             CategoryCard(
               catName: "Doctors",
               icon: FontAwesomeIcons.userDoctor,

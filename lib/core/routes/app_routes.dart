@@ -1,7 +1,6 @@
 import 'package:clinic_appointment_system/core/routes/app_routes_name.dart';
-import 'package:clinic_appointment_system/modules/admin/home/pages/add_doctor_screen.dart';
-import 'package:clinic_appointment_system/modules/admin/home/pages/doctor_details_screen.dart';
-import 'package:clinic_appointment_system/modules/admin/home/pages/doctors_screen.dart';
+import 'package:clinic_appointment_system/modules/admin/home/pages/appointments/admin_appointments_screen.dart';
+import 'package:clinic_appointment_system/modules/admin/home/pages/doctors/add_doctor_screen.dart';
 import 'package:clinic_appointment_system/modules/auth/pages/login_screen.dart';
 import 'package:clinic_appointment_system/modules/auth/pages/sign_up_screen.dart';
 import 'package:clinic_appointment_system/modules/doctor/authorization/doctor_home_proxy.dart';
@@ -12,6 +11,8 @@ import 'package:clinic_appointment_system/modules/patient/home/pages/patient_boo
 import 'package:clinic_appointment_system/modules/patient/home/pages/patient_home_screen.dart';
 import 'package:flutter/cupertino.dart';
 
+import '../../modules/admin/home/pages/doctors/doctor_details_screen.dart';
+import '../../modules/admin/home/pages/doctors/doctors_screen.dart';
 import '../../modules/admin/home/pages/home.dart';
 import '../../modules/doctor/home/pages/doctor_home_screen.dart';
 import '../../modules/doctor/home/pages/doctor_profile_screen.dart';
@@ -75,5 +76,6 @@ class AppRoutes {
       final doctorId = settings.arguments as int;
       return DoctorDetailScreen(doctorId: doctorId);
     },
+    AppRoutesName.adminAppointmentsScreen: (_) => AdminAppointmentsScreen(),
   };
 }

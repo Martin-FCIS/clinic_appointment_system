@@ -80,6 +80,10 @@ class ClinicRepository {
     return await _databaseHelper.getDoctorAppointments(doctorId);
   }
 
+  Future<List<Map<String, dynamic>>> getAllAppointments() async {
+    return await _databaseHelper.getAllAppointments();
+  }
+
   Future<int> updateAppointmentStatus(int id, String status) async {
     return await _databaseHelper.updateAppointmentStatus(id, status);
   }

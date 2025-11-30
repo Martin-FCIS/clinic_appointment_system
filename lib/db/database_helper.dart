@@ -288,6 +288,30 @@ class DatabaseHelper {
       whereArgs: [doctorId],
     );
   }
+  // ... inside DatabaseHelper class ...
+
+  Future<List<Map<String, dynamic>>> getAllAppointments() async {
+    final db = await database;
+
+    // Optional: Update statuses before fetching to ensure data is current
+    await updateExpiredAppointments();
+
+    return await db.rawQuery('''
+      SELECT 
+        appointments.*, 
+        patientUser.name as patientName, 
+        doctorUser.name as doctorName,
+        doctors.specialty
+      FROM appointments
+      -- Join to get Patient Info
+      INNER JOIN users AS patientUser ON appointments.patientId = patientUser.id
+      -- Join to get Doctor Info (link appointment -> doctor -> user)
+      INNER JOIN doctors ON appointments.doctorId = doctors.id
+      INNER JOIN users AS doctorUser ON doctors.userId = doctorUser.id
+      
+      ORDER BY appointments.date DESC, appointments.time DESC
+    ''');
+  }
 
   Future<void> updateExpiredAppointments() async {
     final db = await database;

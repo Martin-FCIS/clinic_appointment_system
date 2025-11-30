@@ -4,20 +4,29 @@ import 'package:flutter/material.dart';
 import '../../../models/doctor_model.dart';
 import '../../../repositories/clinic_repository.dart';
 
-class DoctorHomeProxy extends StatelessWidget {
+class DoctorHomeProxy extends StatefulWidget {
   final int userId;
+
+  const DoctorHomeProxy({super.key, required this.userId});
+
+  @override
+  State<DoctorHomeProxy> createState() => _DoctorHomeProxyState();
+}
+
+class _DoctorHomeProxyState extends State<DoctorHomeProxy> {
   final ClinicRepository _repository = ClinicRepository.getInstance();
+  late Future<Doctor?> _doctorFuture;
 
-  DoctorHomeProxy({super.key, required this.userId});
-
-  Future<Doctor?> _getDoctor() async {
-    return await _repository.getDoctorDetails(userId);
+  @override
+  void initState() {
+    super.initState();
+    _doctorFuture = _repository.getDoctorDetails(widget.userId);
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Doctor?>(
-      future: _getDoctor(),
+      future: _doctorFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -33,14 +42,14 @@ class DoctorHomeProxy extends StatelessWidget {
 
         final doctor = snapshot.data!;
 
-        // Protection check: Only approved doctors can access full screen
         if (doctor.status != "approved") {
           return Scaffold(
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.hourglass_top, size: 50, color: Colors.orange),
+                  const Icon(Icons.hourglass_top,
+                      size: 50, color: Colors.orange),
                   const SizedBox(height: 15),
                   Text(
                     "Your account is ${doctor.status}",
@@ -54,7 +63,8 @@ class DoctorHomeProxy extends StatelessWidget {
             ),
           );
         }
-        return DoctorHomeScreen(userId: userId);
+
+        return DoctorHomeScreen(userId: widget.userId);
       },
     );
   }
