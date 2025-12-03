@@ -11,9 +11,9 @@ import 'package:clinic_appointment_system/modules/patient/home/pages/patient_boo
 import 'package:clinic_appointment_system/modules/patient/home/pages/patient_home_screen.dart';
 import 'package:flutter/cupertino.dart';
 
+import '../../modules/admin/home/pages/admin_home_screen.dart';
 import '../../modules/admin/home/pages/doctors/doctor_details_screen.dart';
 import '../../modules/admin/home/pages/doctors/doctors_screen.dart';
-import '../../modules/admin/home/pages/home.dart';
 import '../../modules/doctor/home/pages/doctor_home_screen.dart';
 import '../../modules/doctor/home/pages/doctor_profile_screen.dart';
 import '../../modules/doctor/registration/pages/doctor_registration_screen.dart';

@@ -75,7 +75,6 @@ class ClinicRepository {
 
   //doctor appointments
   Future<List<Map<String, dynamic>>> getDoctorAppointments(int doctorId) async {
-    // يفضل تستخدم الدالة اللي بتجيب الاسم (WithPatientName)
     await _databaseHelper.updateExpiredAppointments();
     return await _databaseHelper.getDoctorAppointments(doctorId);
   }
@@ -130,6 +129,26 @@ class ClinicRepository {
 
   Future<int> deleteDoctor(int doctorId) async {
     return await _databaseHelper.deleteDoctorAndUser(doctorId);
+  }
+
+  Future<int> getUsersCount() async {
+    return await _databaseHelper.getUsersCount();
+  }
+
+  Future<int> getDoctorsCount() async {
+    return await _databaseHelper.getDoctorsCount();
+  }
+
+  Future<int> getPatientsCount() async {
+    return await _databaseHelper.getPatientsCount();
+  }
+
+  Future<int> getPendingAppointmentsCount() async {
+    return await _databaseHelper.getPendingAppointmentsCount();
+  }
+
+  Future<int> getPendingDoctorsCount() async {
+    return await _databaseHelper.getPendingDoctorsCount();
   }
 
 // دالة البيانات الوهمية (للاختبار)
