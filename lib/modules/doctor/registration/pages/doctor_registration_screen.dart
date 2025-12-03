@@ -70,8 +70,6 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      // معلومة: ممكن نستخدم builder عشان نحدد الدقائق المتاحة بس ده معقد
-      // الأسهل نعمل validation بعد الاختيار زي ما انت طلبت
     );
 
     if (picked != null) {
@@ -137,8 +135,9 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
       return;
     }
     if (double.tryParse(priceController.text.trim()) == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Invalid Price! Please enter a valid number."), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Invalid Price! Please enter a valid number."),
+          backgroundColor: Colors.red));
       return;
     }
 
@@ -172,7 +171,6 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
           schedulesAdded++;
         }
       }
-      // ============================================================
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

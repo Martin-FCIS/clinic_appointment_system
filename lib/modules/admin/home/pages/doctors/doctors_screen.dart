@@ -18,10 +18,9 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
   void initState() {
     super.initState();
     _doctorsFuture = _repository
-        .getAllApprovedDoctors(); // Already set up to fetch 'approved' doctors
+        .getAllApprovedDoctors();
   }
 
-  // Method to re-fetch data after navigating back from an edit/delete
   void refreshData() {
     setState(() {
       _doctorsFuture = _repository.getAllApprovedDoctors();
@@ -31,7 +30,15 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("All Approved Doctors")),
+        appBar: AppBar(
+          title: const Text(
+            "All Approved Doctors",
+            style: TextStyle(fontSize: 30, color: Colors.white),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.blue,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _doctorsFuture,
         builder: (context, snapshot) {
@@ -64,13 +71,11 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () async {
-                    // Navigate to Doctor Detail Screen using named route and pass ID as argument
                     final result = await Navigator.of(context).pushNamed(
                       AppRoutesName
-                          .adminDoctorDetailsScreen, // You'll need to define this route name
+                          .adminDoctorDetailsScreen,
                       arguments: doctor['id'] as int,
                     );
-                    // Refresh the list if an update/delete happened on the detail screen
                     if (result == true) {
                       refreshData();
                     }
@@ -88,7 +93,6 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Navigate to the screen to approve *pending* doctors
           Navigator.of(context).pushNamed(AppRoutesName.adminAddDoctorScreen);
         },
         backgroundColor: AppColors.secondaryColor,

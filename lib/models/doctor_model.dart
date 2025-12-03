@@ -1,10 +1,9 @@
 class Doctor {
   final int? id;
-  final int userId; // Foreign Key
+  final int userId;
   final String specialty;
   final double price;
   final String status;
-  // ممكن نضيف اسم الدكتور هنا للعرض فقط لو عملنا JOIN في الاستعلام
 
   Doctor(
       {this.id,

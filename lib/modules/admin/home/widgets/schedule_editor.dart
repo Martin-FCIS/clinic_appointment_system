@@ -50,7 +50,6 @@ class _ScheduleEditorState extends State<ScheduleEditor> {
       return;
     }
 
-    // Format TimeOfDay to 'HH:mm' string required by the database
     String start =
         '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
     String end =
@@ -152,7 +151,6 @@ class _ScheduleEditorState extends State<ScheduleEditor> {
         ),
         const Divider(height: 30),
 
-        // --- View Schedules Section ---
         const Text("Current Schedules:",
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         FutureBuilder<List<Schedule>>(

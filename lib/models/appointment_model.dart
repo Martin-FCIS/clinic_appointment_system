@@ -2,9 +2,9 @@ class Appointment {
   final int? id;
   final int patientId;
   final int doctorId;
-  final String date;  // "2023-10-25"
-  final String time;  // "10:00 AM"
-  final String status; // pending, confirmed...
+  final String date;
+  final String time;
+  final String status;
 
   Appointment({
     this.id,

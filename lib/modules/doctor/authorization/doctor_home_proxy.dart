@@ -32,7 +32,6 @@ class _DoctorHomeProxyState extends State<DoctorHomeProxy> {
   void _loadData() async {
     var user = await _repository.getUserById(widget.userId);
 
-    /// doctorDetails بيرجع List ← لازم ناخد أول عنصر ونحوّله لـ Doctor
     var raw = await _repository.getDoctorDetails(widget.userId);
 
     Doctor? doctor;
@@ -78,35 +77,35 @@ class _DoctorHomeProxyState extends State<DoctorHomeProxy> {
           profileFun: () {},
           mySchedFun: () {},
           myAppointFun: () {},
-            logoutFun: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text(
-                    "Logout ?",
-                    style:
-                    TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                  ),
-                  content: Text("Are you sure you want to logout ?"),
-                  actions: [
-                    TextButton(
-                      child: const Text("Cancel"),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    TextButton(
-                      child: const Text("logout",
-                          style: TextStyle(color: Colors.red)),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        Navigator.pop(context);
-                        Navigator.pushReplacementNamed(
-                            context, AppRoutesName.loginScreen);
-                      },
-                    ),
-                  ],
+          logoutFun: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(
+                  "Logout ?",
+                  style:
+                      TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                 ),
-              );
-            },
+                content: Text("Are you sure you want to logout ?"),
+                actions: [
+                  TextButton(
+                    child: const Text("Cancel"),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  TextButton(
+                    child: const Text("logout",
+                        style: TextStyle(color: Colors.red)),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                      Navigator.pushReplacementNamed(
+                          context, AppRoutesName.loginScreen);
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
           deleteAccFun: () {
             showDialog(
               context: context,
@@ -114,7 +113,7 @@ class _DoctorHomeProxyState extends State<DoctorHomeProxy> {
                 title: Text(
                   "Delete Account ?",
                   style:
-                  TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                      TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                 ),
                 content: Text("Are you sure you want to Delete the Account?"),
                 actions: [
@@ -152,8 +151,8 @@ class _DoctorHomeProxyState extends State<DoctorHomeProxy> {
               const SizedBox(height: 15),
               Text(
                 "Your account is ${_doctor!.status}",
-                style: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               const Text("Please wait for admin approval."),
@@ -163,7 +162,6 @@ class _DoctorHomeProxyState extends State<DoctorHomeProxy> {
       );
     }
 
-    /// Approved → go to real home
     return DoctorHomeScreen(userId: widget.userId);
   }
 }

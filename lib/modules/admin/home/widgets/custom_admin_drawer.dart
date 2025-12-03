@@ -37,6 +37,7 @@ class CustomAdminDrawer extends StatelessWidget {
             leading: const Icon(Icons.home, color: Colors.blue),
             title: const Text("Appointments"),
             onTap: () {
+              Navigator.pop(context);
               Navigator.pushNamed(
                   context, AppRoutesName.adminAppointmentsScreen);
             },
@@ -45,6 +46,7 @@ class CustomAdminDrawer extends StatelessWidget {
             leading: const Icon(Icons.calendar_month, color: Colors.blue),
             title: const Text("Doctors"),
             onTap: () {
+              Navigator.pop(context);
               Navigator.pushNamed(context, AppRoutesName.adminDoctorsScreen);
             },
           ),

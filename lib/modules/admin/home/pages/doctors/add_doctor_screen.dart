@@ -144,10 +144,6 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
                     text: 'Decline Doctor',
                   ),
                   Spacer(flex: 4),
-                  // DaySelector(onDaysSelected: (l) {
-                  //   print('hi');
-                  // }),
-                  //DoctorScheduleWidget(doctorId: 0),
                 ],
               ),
             ),

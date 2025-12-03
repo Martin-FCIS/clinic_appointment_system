@@ -14,7 +14,7 @@ class AdminDashboard extends StatefulWidget {
 class _AdminDashboardState extends State<AdminDashboard> {
   final _repo = ClinicRepository.getInstance();
 
-  int usersCount = 0;
+  int usersCount = 1;
   int doctorsCount = 0;
   int patientsCount = 0;
   int pendingDoctors = 0;
@@ -28,7 +28,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Future<void> loadStats() async {
-    usersCount = await _repo.getUsersCount();
+    usersCount = await _repo.getUsersCount()-1;
     doctorsCount = await _repo.getDoctorsCount();
     patientsCount = await _repo.getPatientsCount();
     pendingDoctors = await _repo.getPendingDoctorsCount();

@@ -11,10 +11,8 @@ class AdminHome extends StatelessWidget {
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
-        title: Text(
-          'Admin Dash Board',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text("Admin Dash Board",
+            style: TextStyle(fontSize: 30, color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       drawer:

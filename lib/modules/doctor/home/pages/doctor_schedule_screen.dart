@@ -25,28 +25,6 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
     'Friday'
   ];
 
-  // void _printAllDatabaseData() async {
-  //   final db = await DatabaseHelper.getInstance().database;
-  //
-  //   print("\n📦 ========= DATABASE CONTENT ========= 📦");
-  //
-  //   // 1. طباعة الدكاترة
-  //   var doctors = await db.query('doctors');
-  //   print("👨‍⚕️ Doctors Table (${doctors.length}):");
-  //   for (var d in doctors) print(d);
-  //
-  //   // 2. طباعة المواعيد
-  //   var schedules = await db.query('schedules');
-  //   print("\n📅 Schedules Table (${schedules.length}):");
-  //   for (var s in schedules) print(s);
-  //
-  //   // 3. طباعة المستخدمين (عشان تتأكد من الـ IDs)
-  //   var users = await db.query('users');
-  //   print("\n👤 Users Table (${users.length}):");
-  //   for (var u in users) print(u);
-  //
-  //   print("=========================================\n");
-  // }
   @override
   void initState() {
     // TODO: implement initState

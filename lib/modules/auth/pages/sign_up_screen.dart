@@ -3,7 +3,6 @@ import 'package:clinic_appointment_system/core/routes/app_routes_name.dart';
 import 'package:clinic_appointment_system/models/user_factory.dart';
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_button.dart';
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/security_utils.dart';
@@ -81,7 +80,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: Form(
           key: _formKey,
           child: Center(
-
             child: Column(
               children: [
                 Image.asset(
@@ -93,7 +91,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                  
                         CustomTextFormField(
                           Controller: usernameController,
                           hintText: "username",

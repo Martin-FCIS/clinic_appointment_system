@@ -30,7 +30,7 @@ class _PatientBookingScreenState extends State<PatientBookingScreen> {
   bool _isLoadingSlots = false;
 
   List<Schedule> _doctorSchedules = [];
-  PaymentStrategy _paymentMethod = CashPaymentStrategy(); // Default Strategy
+  PaymentStrategy _paymentMethod = CashPaymentStrategy();
 
   @override
   void initState() {
@@ -144,7 +144,6 @@ class _PatientBookingScreenState extends State<PatientBookingScreen> {
     if (_selectedTimeSlot == null) return;
 
     String paymentName = _paymentMethod.getMethodName();
-    // String message = _paymentMethod.pay(widget.doctor.price);
 
     Map<String, dynamic> appointment = {
       'patientId': widget.patientId,

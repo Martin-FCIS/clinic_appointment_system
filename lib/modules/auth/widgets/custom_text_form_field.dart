@@ -61,11 +61,9 @@ class CustomTextFormField extends StatelessWidget {
       decoration: InputDecoration(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           hintStyle: TextStyle(color: Colors.grey),
-          //hintText: "email",
           hintText: hintText,
           errorBorder:
               OutlineInputBorder(borderSide: BorderSide(color: Colors.red)),
-          //prefixIcon: Icon(Icons.email_outlined)),
           prefixIcon: icon),
       style: TextStyle(
         color: Colors.black,

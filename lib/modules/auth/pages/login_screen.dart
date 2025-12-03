@@ -82,22 +82,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
     print("\n📦 ========= DATABASE CONTENT ========= 📦");
 
-    // 1. طباعة الدكاترة
+
     var doctors = await db.query('doctors');
     print("👨‍⚕️ Doctors Table (${doctors.length}):");
     for (var d in doctors) print(d);
 
-    // 2. طباعة المواعيد
     var schedules = await db.query('schedules');
     print("\n📅 Schedules Table (${schedules.length}):");
     for (var s in schedules) print(s);
 
-    // 3. طباعة المستخدمين (عشان تتأكد من الـ IDs)
     var users = await db.query('users');
     print("\n👤 Users Table (${users.length}):");
     for (var u in users) print(u);
 
-    // 4. طباعة الحجوزات (Appointments) 🏥
     var appointments = await db.query('appointments');
     print("\n🏥 Appointments Table (${appointments.length}):");
     for (var a in appointments) print(a);
@@ -120,61 +117,67 @@ class _LoginScreenState extends State<LoginScreen> {
                   fit: BoxFit.fill,
                   width: double.infinity,
                 ),
-                Spacer(),
-                CustomTextFormField(
-                  Controller: emailController,
-                  hintText: "email",
-                  icon: Icon(Icons.email_outlined),
-                  isPass: false,
-                  isSignUp: false,
-                  isEmail: false,
-                ),
-                SizedBox(
-                  height: 30,
-                ),
-                CustomTextFormField(
-                  Controller: passController,
-                  hintText: "password",
-                  icon: Icon(Icons.password_rounded),
-                  isPass: true,
-                  isEmail: false,
-                  isSignUp: false,
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Don't have account ? ",
-                      style: TextStyle(color: Colors.blue, fontSize: 18),
-                    ),
-                    InkWell(
-                      child: Text(
-                        "Sign Up",
-                        style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.blueAccent,
-                            fontWeight: FontWeight.bold),
+                Expanded(
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: [
+                      SizedBox(height: 20,),
+                      CustomTextFormField(
+                        Controller: emailController,
+                        hintText: "email",
+                        icon: Icon(Icons.email_outlined),
+                        isPass: false,
+                        isSignUp: false,
+                        isEmail: false,
                       ),
-                      onTap: () {
-                        Navigator.pushReplacementNamed(
-                            context, AppRoutesName.signUpScreen);
-                      },
-                    ),
-                  ],
+                      SizedBox(
+                        height: 30,
+                      ),
+                      CustomTextFormField(
+                        Controller: passController,
+                        hintText: "password",
+                        icon: Icon(Icons.password_rounded),
+                        isPass: true,
+                        isEmail: false,
+                        isSignUp: false,
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Don't have account ? ",
+                            style: TextStyle(color: Colors.blue, fontSize: 18),
+                          ),
+                          InkWell(
+                            child: Text(
+                              "Sign Up",
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.blueAccent,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            onTap: () {
+                              Navigator.pushReplacementNamed(
+                                  context, AppRoutesName.signUpScreen);
+                            },
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 150,),
+                      CustomButton(
+                        function: () async {
+                          _printAllDatabaseData();
+                          _login();
+                        },
+                        text: "Login",
+                      ),
+                    ],
+                  ),
                 ),
-                Spacer(),
-                CustomButton(
-                  function: () async {
-                    _printAllDatabaseData();
-                    _login();
-                  },
-                  text: "Login",
-                ),
-                Spacer(),
-                Spacer(),
+
               ],
             ),
           ),

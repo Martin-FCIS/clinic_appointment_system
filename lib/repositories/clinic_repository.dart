@@ -150,13 +150,4 @@ class ClinicRepository {
   Future<int> getPendingDoctorsCount() async {
     return await _databaseHelper.getPendingDoctorsCount();
   }
-
-// دالة البيانات الوهمية (للاختبار)
-  // Future<void> addDummyData(int doctorId) async {
-  //   await _databaseHelper.insertDummyAppointments(doctorId);
-  // }
-  // // دالة مساعدة للاختبار
-  // Future<void> addDummyPatientData(int patientId) async {
-  //   await _databaseHelper.insertDummyPatientAppointments(patientId);
-  // }
 }

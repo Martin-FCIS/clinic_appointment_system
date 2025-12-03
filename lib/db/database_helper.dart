@@ -94,8 +94,6 @@ class DatabaseHelper {
     );
     await db.insert('users', adminUser.toMap());
     print("✅ Default Admin Created Successfully using Factory");
-
-    // ملاحظة: التعامل مع الوقت في SQLite بيكون Text (ISO8601 Strings)
   }
 
   //auth
@@ -237,8 +235,6 @@ class DatabaseHelper {
       {
         'date': newDate,
         'time': newTime,
-        // اختياري: ممكن ترجعه 'pending' تاني عشان المريض يوافق عليه،
-        // أو تخليه 'approved' لو الدكتور هو اللي غيره بالاتفاق.
         'status': 'approved',
       },
       where: 'id = ?',
@@ -288,12 +284,10 @@ class DatabaseHelper {
       whereArgs: [doctorId],
     );
   }
-  // ... inside DatabaseHelper class ...
 
   Future<List<Map<String, dynamic>>> getAllAppointments() async {
     final db = await database;
 
-    // Optional: Update statuses before fetching to ensure data is current
     await updateExpiredAppointments();
 
     return await db.rawQuery('''
@@ -366,7 +360,6 @@ class DatabaseHelper {
     var result = await db.query(
       'appointments',
       columns: ['time'],
-      // بنجيب أي حجز مش ملغي (سواء pending أو approved أو completed)
       where: 'doctorId = ? AND date = ? AND status != ?',
       whereArgs: [doctorId, date, 'cancelled'],
     );
@@ -374,8 +367,6 @@ class DatabaseHelper {
     return result.map((e) => e['time'] as String).toList();
   }
 
-  // ... inside class DatabaseHelper { ...
-// Add this method to get the doctor's info and their associated user name
   Future<Map<String, dynamic>?> getDoctorAndUserInfo(int doctorId) async {
     final db = await database;
     var res = await db.rawQuery('''
@@ -398,7 +389,6 @@ class DatabaseHelper {
     return null;
   }
 
-// Add this method to allow admin to update specialty and price
   Future<int> updateDoctorData(
       int doctorId, String specialty, double price) async {
     final db = await database;
@@ -458,108 +448,9 @@ class DatabaseHelper {
         "SELECT COUNT(*) as count FROM appointments WHERE status = 'pending' ");
     return Sqflite.firstIntValue(result) ?? 0;
   }
-// ... rest of the class ...
 
   Future close() async {
     final db = await database;
     db.close();
   }
-
-  // دالة مؤقتة للاختبار: بتضيف مريض وحجوزات وهمية
-  // Future<void> insertDummyAppointments(int doctorId) async {
-  //   final db = await database;
-  //
-  //   // 1. نضيف مريض وهمي (لو مش موجود)
-  //   int patientId;
-  //   var patientCheck = await db
-  //       .query('users', where: 'email = ?', whereArgs: ['patient@test.com']);
-  //
-  //   if (patientCheck.isEmpty) {
-  //     patientId = await db.insert('users', {
-  //       'name': 'Test Patient',
-  //       'email': 'patient@test.com',
-  //       'password': '123', // مش مهم قوي هنا
-  //       'role': 3, // 3 = Patient
-  //     });
-  //   } else {
-  //     patientId = patientCheck.first['id'] as int;
-  //   }
-  //
-  //   // 2. نضيف 3 حجوزات (Pending) للدكتور ده
-  //   await db.insert('appointments', {
-  //     'patientId': patientId,
-  //     'doctorId': doctorId,
-  //     'date': '2023-11-20',
-  //     'time': '10:00 AM',
-  //     'status': 'pending',
-  //   });
-  //
-  //   await db.insert('appointments', {
-  //     'patientId': patientId,
-  //     'doctorId': doctorId,
-  //     'date': '2023-11-21',
-  //     'time': '05:30 PM',
-  //     'status': 'pending',
-  //   });
-  //
-  //   await db.insert('appointments', {
-  //     'patientId': patientId,
-  //     'doctorId': doctorId,
-  //     'date': '2023-11-22',
-  //     'time': '01:00 PM',
-  //     'status': 'approved', // واحد مقبول جاهز للتجربة
-  //   });
-  //
-  //   print("✅ Dummy Appointments Added for Doctor ID: $doctorId");
-  // }
-  //
-  // // دالة لإضافة حجوزات وهمية لمريض معين (للاختبار)
-  // Future<void> insertDummyPatientAppointments(int patientId) async {
-  //   final db = await database;
-  //   int doctorId;
-  //   var doctors = await db.query('doctors');
-  //
-  //   if (doctors.isNotEmpty) {
-  //     doctorId = doctors.last['id'] as int;
-  //   } else {
-  //     // لو مفيش دكاترة خالص، اخلق دكتور وهمي سريعاً
-  //     int userId = await db.insert('users', {
-  //       'name': 'Dr. Test',
-  //       'email': 'doc@test.com',
-  //       'password': '123',
-  //       'role': 2
-  //     });
-  //     doctorId = await db.insert('doctors', {
-  //       'userId': userId,
-  //       'specialty': 'General',
-  //       'price': 150.0,
-  //       'status': 'approved'
-  //     });
-  //   }
-  //
-  //   // 2. إضافة حجوزات بحالات مختلفة
-  //   await db.insert('appointments', {
-  //     'patientId': patientId,
-  //     'doctorId': doctorId,
-  //     'date': '2025-12-01',
-  //     'time': '10:00',
-  //     'status': 'pending', // برتقالي
-  //   });
-  //
-  //   await db.insert('appointments', {
-  //     'patientId': patientId,
-  //     'doctorId': doctorId,
-  //     'date': '2025-12-02',
-  //     'time': '05:30',
-  //     'status': 'approved', // أخضر
-  //   });
-  //
-  //   await db.insert('appointments', {
-  //     'patientId': patientId,
-  //     'doctorId': doctorId,
-  //     'date': '2025-11-20',
-  //     'time': '01:00',
-  //     'status': 'approved', // أحمر
-  //   });
-  // }
 }

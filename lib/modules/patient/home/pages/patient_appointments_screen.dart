@@ -59,21 +59,17 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
   }
   String _formatAppointmentRange(String startTime, BuildContext context) {
     try {
-      // 1. تحويل النص (14:30) لـ TimeOfDay
       final parts = startTime.split(':');
       final start = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-
-      // 2. حساب وقت النهاية (إضافة 15 دقيقة)
       final startInMinutes = start.hour * 60 + start.minute;
       final endInMinutes = startInMinutes + 15;
 
       final end = TimeOfDay(hour: endInMinutes ~/ 60, minute: endInMinutes % 60);
 
-      // 3. التنسيق (AM/PM)
       return "${start.format(context)} - ${end.format(context)}";
 
     } catch (e) {
-      return startTime; // لو حصل خطأ في الفورمات رجع الوقت الأصلي
+      return startTime;
     }
   }
   @override
@@ -86,12 +82,10 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
-        // زرار الداتا الوهمية (اختياري، ممكن تشيله لو خلصت تيست)
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             onPressed: () async {
-            //  await _repo.addDummyPatientData(widget.patientId);
               _loadData();
             },
           )
@@ -142,7 +136,6 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 1. الصف العلوي (الاسم والتخصص والحالة)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -167,7 +160,6 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
                       const Divider(),
                       const SizedBox(height: 10),
 
-                      // 2. تفاصيل الموعد (تاريخ ووقت)
                       Row(
                         children: [
                           _buildInfoChip(Icons.calendar_today_outlined, item['date']),
@@ -181,7 +173,6 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
 
                       const SizedBox(height: 10),
 
-                      // 3. 🔥 الجديد: تفاصيل الدفع (سعر وطريقة)
                       Row(
                         children: [
                           _buildInfoChip(Icons.monetization_on_outlined, "${item['price']} EGP"),
@@ -190,11 +181,10 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
                         ],
                       ),
 
-                      // 4. زرار الإلغاء (لو متاح)
                       if (canCancel) ...[
                         const SizedBox(height: 15),
                         Align(
-                          alignment: Alignment.centerRight, // خليناه يمين عشان الشكل
+                          alignment: Alignment.centerRight,
                           child: InkWell(
                             onTap: () => _cancelAppointment(item['id']),
                             borderRadius: BorderRadius.circular(20),
