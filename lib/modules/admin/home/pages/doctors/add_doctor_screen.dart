@@ -128,7 +128,7 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
                     color: Colors.red,
                     function: () {
                       if (_formKey.currentState!.validate()) {
-                        _repository.updateDoctorStatus(selectedID, 'denied');
+                        _repository.deleteDoctor(selectedID);
 
                         localDoctors.removeAt(index);
                         specialityController.text = "";

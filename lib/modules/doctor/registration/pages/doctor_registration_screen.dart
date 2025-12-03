@@ -5,7 +5,6 @@ import 'package:clinic_appointment_system/modules/auth/widgets/custom_button.dar
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_text_form_field.dart';
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
-
 import '../../../../models/doctor_model.dart';
 import '../../../../models/schedule_model.dart';
 import '../../../../models/user_model.dart';
@@ -76,7 +75,6 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
     );
 
     if (picked != null) {
-      // 1. شرط الدقائق (00 أو 30 فقط) ⏰
       if (picked.minute != 0 &&
           picked.minute != 15 &&
           picked.minute != 30 &&
@@ -136,6 +134,11 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
         content: Text("Please fill Price & Specialty"),
         backgroundColor: Colors.red,
       ));
+      return;
+    }
+    if (double.tryParse(priceController.text.trim()) == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Invalid Price! Please enter a valid number."), backgroundColor: Colors.red));
       return;
     }
 

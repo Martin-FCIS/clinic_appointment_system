@@ -48,7 +48,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
           }
 
           return Padding(
-            padding: EdgeInsetsGeometry.all(8),
+            padding: EdgeInsets.all(8),
             child: ListView.separated(
               itemCount: doctorsList.length,
               itemBuilder: (context, index) {

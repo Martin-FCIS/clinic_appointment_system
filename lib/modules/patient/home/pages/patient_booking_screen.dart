@@ -28,7 +28,6 @@ class _PatientBookingScreenState extends State<PatientBookingScreen> {
   List<String> _bookedSlots = [];
   String? _selectedTimeSlot;
   bool _isLoadingSlots = false;
- late bool _isLoading;
 
   List<Schedule> _doctorSchedules = [];
   PaymentStrategy _paymentMethod = CashPaymentStrategy(); // Default Strategy
@@ -39,33 +38,49 @@ class _PatientBookingScreenState extends State<PatientBookingScreen> {
     _fetchDoctorSchedules();
   }
 
-  // 1. جلب جدول عمل الدكتور
   void _fetchDoctorSchedules() async {
     var schedules = await _repo.getDoctorSchedules(widget.doctor.id!);
-    setState(() {
-      _doctorSchedules = schedules;
-    });
-    // تحميل مواعيد النهاردة
-    _generateSlotsForDate(_selectedDate);
+
+    DateTime? firstWorkingDay;
+    DateTime now = DateTime.now();
+
+    for (int i = 0; i < 30; i++) {
+      DateTime day = now.add(Duration(days: i));
+      String dayName = DateFormat('EEEE').format(day);
+
+      bool isWorking = schedules.any((s) => s.day.toLowerCase() == dayName.toLowerCase());
+
+      if (isWorking) {
+        firstWorkingDay = day;
+        break;
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _doctorSchedules = schedules;
+        if (firstWorkingDay != null) {
+          _selectedDate = firstWorkingDay;
+        }
+      });
+
+      _generateSlotsForDate(_selectedDate);
+    }
   }
 
-  // 2. هل الدكتور شغال في التاريخ ده؟
   bool _isDoctorWorkingOnDate(DateTime date) {
     String dayName = DateFormat('EEEE').format(date);
     return _doctorSchedules.any((s) => s.day.toLowerCase() == dayName.toLowerCase());
   }
-
-  // 3. توليد المواعيد (15 دقيقة)
   void _generateSlotsForDate(DateTime date) async {
     setState(() {
-      _isLoading = true;
+      _isLoadingSlots = true;
       _availableSlots = [];
       _selectedTimeSlot = null;
     });
 
     String dayName = DateFormat('EEEE').format(date);
 
-    // هات شيفت الدكتور في اليوم ده
     Schedule? scheduleForToday;
     try {
       scheduleForToday = _doctorSchedules.firstWhere(
@@ -82,7 +97,6 @@ class _PatientBookingScreenState extends State<PatientBookingScreen> {
           scheduleForToday.endTime
       );
 
-      // ب. جلب المحجوز من الداتابيز
       String formattedDate = DateFormat('yyyy-MM-dd').format(date);
       List<String> reserved = await _repo.getReservedTimes(widget.doctor.id!, formattedDate);
 
@@ -90,20 +104,20 @@ class _PatientBookingScreenState extends State<PatientBookingScreen> {
         setState(() {
           _availableSlots = allSlots;
           _bookedSlots = reserved;
-          _isLoading = false;
+          _isLoadingSlots = false;
         });
       }
     } else {
       if (mounted) {
         setState(() {
           _availableSlots = [];
-          _isLoading = false;
+          _isLoadingSlots = false;
+          _isLoadingSlots = false;
         });
       }
     }
   }
 
-  // خوارزمية التقسيم
   List<String> _createTimeSlots(String startStr, String endStr) {
     List<String> slots = [];
     TimeOfDay start = _parseTime(startStr);
@@ -117,7 +131,7 @@ class _PatientBookingScreenState extends State<PatientBookingScreen> {
       int m = currentMinutes % 60;
       String slot = "${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}";
       slots.add(slot);
-      currentMinutes += 15; // زيادة 15 دقيقة
+      currentMinutes += 15;
     }
     return slots;
   }
