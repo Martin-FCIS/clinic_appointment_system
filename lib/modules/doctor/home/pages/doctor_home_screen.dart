@@ -3,7 +3,6 @@ import 'package:clinic_appointment_system/modules/doctor/home/widgets/custom_car
 import 'package:clinic_appointment_system/modules/doctor/home/widgets/custom_doctor_drawer.dart';
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
-
 import '../../../../core/routes/app_routes_name.dart';
 import '../../../../models/schedule_model.dart';
 import '../../../../models/user_model.dart';
@@ -137,7 +136,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                     child: const Text("Delete",
                         style: TextStyle(color: Colors.red)),
                     onPressed: () async {
-                      _repository.deleteUser(widget.userId);
+                      _repository.deleteDoctor(widget.userId);
                       if (context.mounted) {
                         Navigator.pop(context);
                         Navigator.pushNamedAndRemoveUntil(context,
@@ -204,7 +203,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                   Expanded(
                     child: CustomCard(
                       title: "Specialty",
-                      value: _doctor!.specialty, // التخصص
+                      value: _doctor!.specialty,
                       icon: Icons.medical_services_outlined,
                       color: Colors.blue,
                     ),
@@ -213,7 +212,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                   Expanded(
                     child: CustomCard(
                       title: "Price",
-                      value: "${_doctor!.price} EGP", // السعر
+                      value: "${_doctor!.price} EGP",
                       icon: Icons.monetization_on_outlined,
                       color: Colors.orange,
                     ),

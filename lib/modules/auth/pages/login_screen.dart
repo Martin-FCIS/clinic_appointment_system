@@ -167,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 Spacer(),
                 CustomButton(
-                  function: () {
+                  function: () async {
                     _printAllDatabaseData();
                     _login();
                   },

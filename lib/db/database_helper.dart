@@ -81,8 +81,8 @@ class DatabaseHelper {
     time TEXT NOT NULL,
     status TEXT DEFAULT 'pending',
     paymentMethod TEXT NOT NULL, -- (جديد) 'Cash' or 'Credit Card'
-    FOREIGN KEY (patientId) REFERENCES users (id),
-    FOREIGN KEY (doctorId) REFERENCES doctors (id)
+    FOREIGN KEY (patientId) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (doctorId) REFERENCES doctors (id) ON DELETE CASCADE
   )
 ''');
     String adminPass = SecurityUtils.hashPassword("admin123");
@@ -413,7 +413,6 @@ class DatabaseHelper {
     );
   }
 
-// Add this method to delete the doctor (including the user account)
   Future<int> deleteDoctorAndUser(int doctorId) async {
     final db = await database;
 
