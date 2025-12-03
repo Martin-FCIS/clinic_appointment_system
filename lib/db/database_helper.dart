@@ -416,7 +416,6 @@ class DatabaseHelper {
   Future<int> deleteDoctorAndUser(int doctorId) async {
     final db = await database;
 
-    // 1. Get the userId associated with the doctorId
     var doctorResult = await db.query('doctors',
         columns: ['userId'], where: 'id = ?', whereArgs: [doctorId]);
 
@@ -424,10 +423,8 @@ class DatabaseHelper {
 
     final userId = doctorResult.first['userId'] as int;
 
-    // 2. Delete the user (which should cascade delete the doctor and schedules)
-    return await deleteUser(userId); // deleteUser is already defined
+    return await deleteUser(userId);
   }
-// ... rest of the class ...
 
   Future close() async {
     final db = await database;
