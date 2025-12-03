@@ -426,6 +426,40 @@ class DatabaseHelper {
     return await deleteUser(userId);
   }
 
+  Future<int> getUsersCount() async {
+    final db = await database;
+    var result = await db.rawQuery('SELECT COUNT(*) as count FROM users');
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  Future<int> getDoctorsCount() async {
+    final db = await database;
+    var result = await db.rawQuery('SELECT COUNT(*) as count FROM doctors');
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  Future<int> getPatientsCount() async {
+    final db = await database;
+    var result =
+        await db.rawQuery('SELECT COUNT(*) as count FROM users WHERE role = 3');
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  Future<int> getPendingDoctorsCount() async {
+    final db = await database;
+    var result = await db.rawQuery(
+        "SELECT COUNT(*) as count FROM doctors WHERE status = 'pending'");
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  Future<int> getPendingAppointmentsCount() async {
+    final db = await database;
+    var result = await db.rawQuery(
+        "SELECT COUNT(*) as count FROM appointments WHERE status = 'pending' ");
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+// ... rest of the class ...
+
   Future close() async {
     final db = await database;
     db.close();
