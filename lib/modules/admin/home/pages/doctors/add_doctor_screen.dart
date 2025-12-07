@@ -29,8 +29,13 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text(
+          "Pending Doctors",
+          style: TextStyle(fontSize: 30, color: Colors.white),
+        ),
         centerTitle: true,
-        title: Text('Pending Doctors'),
+        backgroundColor: Colors.blue,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _repository.getPendingDoctors(),
