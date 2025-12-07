@@ -1,3 +1,4 @@
+import 'package:clinic_appointment_system/core/routes/app_routes_name.dart';
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -171,6 +172,13 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pushReplacementNamed(
+                context, AppRoutesName.adminHomeScreen);
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text("All Appointments", // Changed Title
             style: TextStyle(fontSize: 24, color: Colors.white)),
