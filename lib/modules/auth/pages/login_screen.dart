@@ -4,7 +4,6 @@ import 'package:clinic_appointment_system/modules/auth/widgets/custom_button.dar
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_text_form_field.dart';
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
-
 import '../../../core/utils/security_utils.dart';
 import '../../../db/database_helper.dart';
 import '../../../models/user_model.dart';
@@ -82,7 +81,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     print("\n📦 ========= DATABASE CONTENT ========= 📦");
 
-
     var doctors = await db.query('doctors');
     print("👨‍⚕️ Doctors Table (${doctors.length}):");
     for (var d in doctors) print(d);
@@ -121,7 +119,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ListView(
                     shrinkWrap: true,
                     children: [
-                      SizedBox(height: 20,),
+                      SizedBox(
+                        height: 20,
+                      ),
                       CustomTextFormField(
                         Controller: emailController,
                         hintText: "email",
@@ -160,27 +160,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                   fontWeight: FontWeight.bold),
                             ),
                             onTap: () {
-                              Navigator.pushReplacementNamed(
+                              Navigator.pushNamed(
                                   context, AppRoutesName.signUpScreen);
                             },
                           ),
                         ],
                       ),
-                      SizedBox(height: 150,),
-                      CustomButton(
-                        function: () async {
-                          _printAllDatabaseData();
-                          _login();
-                        },
-                        text: "Login",
+                      SizedBox(
+                        height: 150,
                       ),
                     ],
                   ),
                 ),
-
               ],
             ),
           ),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: CustomButton(
+          function: () async {
+            _printAllDatabaseData();
+            _login();
+          },
+          text: "Login",
         ),
       ),
     );

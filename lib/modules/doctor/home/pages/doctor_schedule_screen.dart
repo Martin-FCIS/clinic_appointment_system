@@ -1,5 +1,6 @@
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../../models/schedule_model.dart';
 
 class DoctorScheduleScreen extends StatefulWidget {
@@ -174,6 +175,15 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
     final parts = timeString.split(":");
     return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
+  String _formatTo12Hour(String time24) {
+    try {
+      DateTime tempDate = DateFormat("HH:mm").parse(time24);
+      return DateFormat("h:mm a").format(tempDate);
+    } catch (e) {
+      return time24;
+    }
+  }
+
 
   Future<TimeOfDay?> _pickTime(
       TimeOfDay? currentStart, TimeOfDay? referenceStart) async {
@@ -181,10 +191,9 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
         await showTimePicker(context: context, initialTime: TimeOfDay.now());
 
     if (picked != null) {
-      // 1. شرط الدقائق (00 أو 30)
-      if (picked.minute != 0 && picked.minute != 30) {
+      if (picked.minute != 0 &&picked.minute != 15 &&picked.minute != 30 && picked.minute != 45) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Please pick :00 or :30"),
+            content: Text("Please pick :00 or :15 or :30 or :45"),
             backgroundColor: Colors.orange));
         return null;
       }
@@ -292,7 +301,7 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
                         title: Text(item.day,
                             style:
                                 const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text("${item.startTime} - ${item.endTime}"),
+                        subtitle: Text("${_formatTo12Hour(item.startTime)} - ${_formatTo12Hour(item.endTime)}"),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete_outline,
                               color: Colors.red),

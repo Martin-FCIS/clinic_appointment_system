@@ -2,6 +2,7 @@ import 'package:clinic_appointment_system/models/schedule_model.dart';
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 
 class ScheduleEditor extends StatefulWidget {
   final int doctorId;
@@ -85,6 +86,14 @@ class _ScheduleEditorState extends State<ScheduleEditor> {
       const SnackBar(content: Text('Schedule deleted.')),
     );
     _refreshSchedules();
+  }
+  String _formatTo12Hour(String time24) {
+    try {
+      DateTime tempDate = DateFormat("HH:mm").parse(time24);
+      return DateFormat("h:mm a").format(tempDate);
+    } catch (e) {
+      return time24;
+    }
   }
 
   @override
@@ -185,7 +194,7 @@ class _ScheduleEditorState extends State<ScheduleEditor> {
                   dense: true,
                   title: Text(schedule.day,
                       style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("${schedule.startTime} - ${schedule.endTime}"),
+                  subtitle: Text("${_formatTo12Hour(schedule.startTime)} - ${_formatTo12Hour(schedule.endTime)}"),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red, size: 20),
                     // Use schedule.id to delete

@@ -168,11 +168,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ],
                         ),
                         SizedBox(height: 20,),
-                        CustomButton(
-                          function: _signUp,
-                          text: "Create account",
-                        ),
-                  
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "already have account ? ",
+                              style: TextStyle(color: Colors.blue, fontSize: 18),
+                            ),
+                            InkWell(onTap: () {
+                              Navigator.pop(context);
+                            },child: Text(
+                              "Sign in",
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.blueAccent,
+                                  fontWeight: FontWeight.bold),
+                            ),),
+                          ],
+                        )
                       ],
                     ),
                   ),
@@ -180,6 +193,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ],
             ),
           ),
+        ),
+      ),
+      bottomNavigationBar:         Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: CustomButton(
+          function: _signUp,
+          text: "Create account",
         ),
       ),
     );

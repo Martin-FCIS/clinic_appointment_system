@@ -81,21 +81,25 @@ class _PatientBookingScreenState extends State<PatientBookingScreen> {
 
     String dayName = DateFormat('EEEE').format(date);
 
-    Schedule? scheduleForToday;
-    try {
-      scheduleForToday = _doctorSchedules.firstWhere(
-              (s) => s.day.toLowerCase() == dayName.toLowerCase()
-      );
-    } catch (e) {
-      scheduleForToday = null;
-    }
+    // 1. التعديل هنا: بدل firstWhere هنستخدم where عشان نجيب لستة بكل المواعيد في اليوم ده
+    List<Schedule> schedulesForToday = _doctorSchedules
+        .where((s) => s.day.toLowerCase() == dayName.toLowerCase())
+        .toList();
 
-    if (scheduleForToday != null) {
-      // أ. تقسيم الوقت
-      List<String> allSlots = _createTimeSlots(
-          scheduleForToday.startTime,
-          scheduleForToday.endTime
-      );
+    if (schedulesForToday.isNotEmpty) {
+      List<String> allSlots = [];
+
+      // 2. التعديل هنا: بنلف على كل المواعيد (الصبح وبليل) ونجمع السلوتات كلها
+      for (var schedule in schedulesForToday) {
+        List<String> sessionSlots = _createTimeSlots(
+            schedule.startTime,
+            schedule.endTime
+        );
+        allSlots.addAll(sessionSlots);
+      }
+
+      // 3. ترتيب السلوتات عشان الصبح يظهر قبل بليل (اختياري بس أشيك)
+      allSlots.sort((a, b) => a.compareTo(b));
 
       String formattedDate = DateFormat('yyyy-MM-dd').format(date);
       List<String> reserved = await _repo.getReservedTimes(widget.doctor.id!, formattedDate);
@@ -111,7 +115,6 @@ class _PatientBookingScreenState extends State<PatientBookingScreen> {
       if (mounted) {
         setState(() {
           _availableSlots = [];
-          _isLoadingSlots = false;
           _isLoadingSlots = false;
         });
       }
@@ -135,7 +138,14 @@ class _PatientBookingScreenState extends State<PatientBookingScreen> {
     }
     return slots;
   }
-
+  String _formatTo12Hour(String time24) {
+    try {
+      DateTime tempDate = DateFormat("HH:mm").parse(time24);
+      return DateFormat("h:mm a").format(tempDate);
+    } catch (e) {
+      return time24;
+    }
+  }
   TimeOfDay _parseTime(String time) {
     var parts = time.split(':');
     return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
@@ -218,7 +228,7 @@ class _PatientBookingScreenState extends State<PatientBookingScreen> {
 
                 return ChoiceChip(
                   label: Text(
-                    slot,
+                    _formatTo12Hour(slot),
                     style: TextStyle(
                         color: isBooked ? Colors.white : (isSelected ? Colors.white : Colors.black),
                         fontSize: 12

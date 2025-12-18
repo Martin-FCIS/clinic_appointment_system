@@ -99,6 +99,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -167,13 +168,16 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               const SizedBox(height: 40),
 
               // Delete Button
-              CustomButton(
-                color: Colors.red,
-                function: _deleteDoctor,
-                text: 'Delete Doctor',
-              ),
             ],
           ),
+        ),
+      ),
+      bottomNavigationBar:  Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: CustomButton(
+          color: Colors.red,
+          function: _deleteDoctor,
+          text: 'Delete Doctor',
         ),
       ),
     );

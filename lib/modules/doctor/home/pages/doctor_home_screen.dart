@@ -3,6 +3,7 @@ import 'package:clinic_appointment_system/modules/doctor/home/widgets/custom_car
 import 'package:clinic_appointment_system/modules/doctor/home/widgets/custom_doctor_drawer.dart';
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/routes/app_routes_name.dart';
 import '../../../../models/schedule_model.dart';
 import '../../../../models/user_model.dart';
@@ -29,7 +30,6 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     super.initState();
     _getData();
   }
-
   void _getData() async {
     var user = await _repository.getUserById(widget.userId);
     var doctor = await _repository.getDoctorDetails(widget.userId);
@@ -46,6 +46,14 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       }
     } else {
       setState(() => _isLoading = false);
+    }
+  }
+  String _formatTo12Hour(String time24) {
+    try {
+      DateTime tempDate = DateFormat("HH:mm").parse(time24);
+      return DateFormat("h:mm a").format(tempDate);
+    } catch (e) {
+      return time24;
     }
   }
 
@@ -260,51 +268,94 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                         ],
                       ),
                     )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _schedules.length,
-                      itemBuilder: (context, index) {
-                        final schedule = _schedules[index];
-                        return Card(
-                          elevation: 2,
-                          margin: const EdgeInsets.only(bottom: 10),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.blue.shade50,
-                              child: Text(
-                                schedule.day.substring(0, 3).toUpperCase(),
-                                style: const TextStyle(
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12),
+                  : Builder(
+                      builder: (context) {
+                        Map<String, List<Schedule>> groupedSchedules = {};
+                        for (var schedule in _schedules) {
+                          if (!groupedSchedules.containsKey(schedule.day)) {
+                            groupedSchedules[schedule.day] = [];
+                          }
+                          groupedSchedules[schedule.day]!.add(schedule);
+                        }
+                        var days = groupedSchedules.keys.toList();
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: days.length,
+                          itemBuilder: (context, index) {
+                            String dayName = days[index];
+                            List<Schedule> daySchedules =
+                                groupedSchedules[dayName]!;
+                            return Card(
+                              elevation: 2,
+                              margin: const EdgeInsets.only(bottom: 10),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                // ده هيعمل مسافة مريحة جوه الكارد
+                                child: Row(
+                                  children: [
+                                    // 1. الجزء اللي كان Leading (الدايرة)
+                                    CircleAvatar(
+                                      backgroundColor: Colors.blue.shade50,
+                                      radius: 22, // كبرناها سنة عشان الشكل
+                                      child: Text(
+                                        dayName.substring(0, 3).toUpperCase(),
+                                        style: const TextStyle(
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    // مسافة بين الدايرة والاسم
+
+                                    // 2. الجزء اللي كان Title (اسم اليوم)
+                                    Expanded(
+                                      child: Text(
+                                        dayName,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
+                                      ),
+                                    ),
+
+                                    // 3. الجزء اللي كان Trailing (قايمة المواعيد)
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children:
+                                          daySchedules.map((scheduleItem) {
+                                        return Container(
+                                          margin:
+                                              const EdgeInsets.only(bottom: 5),
+                                          // مسافة بين كل ميعاد والتاني
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade100,
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            "${_formatTo12Hour(scheduleItem.startTime)} - ${_formatTo12Hour(scheduleItem.endTime)}",
+                                            style: TextStyle(
+                                                color: Colors.grey.shade800,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            title: Text(
-                              schedule.day,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            trailing: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                "${schedule.startTime} - ${schedule.endTime}",
-                                style: TextStyle(
-                                    color: Colors.grey.shade800,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ),
+                            );
+                          },
                         );
                       },
-                    ),
+                    )
             ],
           ),
         ),
