@@ -3,6 +3,7 @@ import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../../../../core/routes/app_routes_name.dart';
 import '../../../../auth/widgets/custom_text_form_field.dart';
 import '../../../../core_widgets/custom_dropdown.dart';
 
@@ -32,6 +33,13 @@ class _AddDoctorScreenState extends State<AddDoctorScreen> {
         title: const Text(
           "Pending Doctors",
           style: TextStyle(fontSize: 30, color: Colors.white),
+        ),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pushReplacementNamed(
+                context, AppRoutesName.adminDoctorsScreen);
+          },
+          icon: Icon(Icons.arrow_back),
         ),
         centerTitle: true,
         backgroundColor: Colors.blue,

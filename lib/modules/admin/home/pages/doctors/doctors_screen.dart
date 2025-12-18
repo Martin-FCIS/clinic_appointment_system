@@ -17,8 +17,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
   @override
   void initState() {
     super.initState();
-    _doctorsFuture = _repository
-        .getAllApprovedDoctors();
+    _doctorsFuture = _repository.getAllApprovedDoctors();
   }
 
   void refreshData() {
@@ -30,15 +29,22 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "All Approved Doctors",
-            style: TextStyle(fontSize: 30, color: Colors.white),
-          ),
-          centerTitle: true,
-          backgroundColor: Colors.blue,
-          iconTheme: const IconThemeData(color: Colors.white),
+      appBar: AppBar(
+        title: const Text(
+          "All Approved Doctors",
+          style: TextStyle(fontSize: 30, color: Colors.white),
         ),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pushReplacementNamed(
+                context, AppRoutesName.adminHomeScreen);
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _doctorsFuture,
         builder: (context, snapshot) {
@@ -72,8 +78,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () async {
                     final result = await Navigator.of(context).pushNamed(
-                      AppRoutesName
-                          .adminDoctorDetailsScreen,
+                      AppRoutesName.adminDoctorDetailsScreen,
                       arguments: doctor['id'] as int,
                     );
                     if (result == true) {

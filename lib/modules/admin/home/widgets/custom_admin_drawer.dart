@@ -38,7 +38,7 @@ class CustomAdminDrawer extends StatelessWidget {
             title: const Text("Appointments"),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(
+              Navigator.pushReplacementNamed(
                   context, AppRoutesName.adminAppointmentsScreen);
             },
           ),
@@ -47,7 +47,8 @@ class CustomAdminDrawer extends StatelessWidget {
             title: const Text("Doctors"),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, AppRoutesName.adminDoctorsScreen);
+              Navigator.pushReplacementNamed(
+                  context, AppRoutesName.adminDoctorsScreen);
             },
           ),
           const Divider(),
