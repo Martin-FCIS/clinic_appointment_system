@@ -1,6 +1,11 @@
+import 'package:clinic_appointment_system/modules/core_widgets/appointment_card.dart';
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import '../../../../core/logic/appointment_filter_strategy.dart';
+
+enum FilterType { all, day, week }
 
 class DoctorAppointmentsScreen extends StatefulWidget {
   final int doctorId;
@@ -14,8 +19,11 @@ class DoctorAppointmentsScreen extends StatefulWidget {
 
 class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
   final ClinicRepository _repository = ClinicRepository.getInstance();
-  List<Map<String, dynamic>> _appointments = [];
+  List<Map<String, dynamic>> _allAppointments = [];
+  List<Map<String, dynamic>> _displayedAppointments = [];
   bool _isLoading = true;
+  FilterType _currentFilter = FilterType.all;
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -27,8 +35,57 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
     final data = await _repository.getDoctorAppointments(widget.doctorId);
     if (mounted) {
       setState(() {
-        _appointments = data;
+        _allAppointments = data;
         _isLoading = false;
+        _applyFilter();
+      });
+    }
+  }
+
+  void _applyFilter() {
+    setState(() {
+      AppointmentFilterStrategy strategy;
+      switch(_currentFilter){
+        case FilterType.day:
+          strategy = DayAppointmentsStrategy();
+          break;
+        case FilterType.week:
+          strategy=WeekAppointmentsStrategy();
+          break;
+        case FilterType.all:
+        default:
+          strategy=AllAppointmentsStrategy();
+          break;
+      }
+      _displayedAppointments=strategy.execute(_allAppointments, _selectedDate);
+    });
+  }
+
+  void _setFilter(FilterType type) {
+    setState(() {
+      _currentFilter = type;
+      _applyFilter();
+    });
+  }
+
+  void _changeDate(int days) {
+    setState(() {
+      _selectedDate = _selectedDate.add(Duration(days: days));
+      _applyFilter();
+    });
+  }
+
+  void _pickDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+        _applyFilter();
       });
     }
   }
@@ -154,21 +211,6 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
     );
   }
 
-  String _formatAppointmentRange(String startTime, BuildContext context) {
-    try {
-      final parts = startTime.split(':');
-      final start =
-          TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-      final startInMinutes = start.hour * 60 + start.minute;
-      final endInMinutes = startInMinutes + 15;
-      final end =
-          TimeOfDay(hour: endInMinutes ~/ 60, minute: endInMinutes % 60);
-      return "${start.format(context)} - ${end.format(context)}";
-    } catch (e) {
-      return startTime;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -195,183 +237,115 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
         centerTitle: true,
         elevation: 0,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadAppointments,
-              child: _appointments.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _appointments.length,
-                      itemBuilder: (context, index) {
-                        return _buildAppointmentCard(_appointments[index]);
-                      },
-                    ),
-            ),
+      body: Column(
+        children: [
+          _buildFilterHeader(),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : RefreshIndicator(
+                    onRefresh: _loadAppointments,
+                    child: _displayedAppointments.isEmpty
+                        ? _buildEmptyState()
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _displayedAppointments.length,
+                            itemBuilder: (context, index) {
+                              final item = _displayedAppointments[index];
+                              return AppointmentCard(
+                                item: item,
+                                isDoctorView: true,
+                                onStatusChange: (newStatus) {
+                                  _updateStatus(item['id'], newStatus);
+                                },
+                                onTap: () => _showRescheduleDialog(item),
+                              );
+                            },
+                          ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildAppointmentCard(Map<String, dynamic> item) {
-    bool isPending = item['status'] == 'pending';
-    Color statusColor = _getStatusColor(item['status']);
-
-    String paymentMethod = item['paymentMethod'] ?? 'Cash';
-    IconData paymentIcon =
-        paymentMethod == 'Credit Card' ? Icons.credit_card : Icons.money;
-
-    return InkWell(
-      onTap: () => _showRescheduleDialog(item),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4)),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(15),
-          child: IntrinsicHeight(
-            child: Row(
+  Widget _buildFilterHeader() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildFilterChip("All", FilterType.all),
+              const SizedBox(width: 10),
+              _buildFilterChip("Day", FilterType.day),
+              const SizedBox(width: 10),
+              _buildFilterChip("Week", FilterType.week),
+            ],
+          ),
+          if (_currentFilter != FilterType.all) ...[
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(width: 6, color: statusColor),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios, size: 18),
+                  onPressed: () =>
+                      _changeDate(_currentFilter == FilterType.week ? -7 : -1),
+                ),
+                InkWell(
+                  onTap: _pickDate,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.blue.shade200)),
+                    child: Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: Colors.blue.shade50,
-                                  radius: 20,
-                                  child: Text(
-                                    item['patientName'][0].toUpperCase(),
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.blue),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item['patientName'],
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: statusColor.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        item['status'].toUpperCase(),
-                                        style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            color: statusColor),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const Icon(Icons.edit_calendar,
-                                color: Colors.grey, size: 20),
-                          ],
+                        const Icon(Icons.calendar_today,
+                            size: 16, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        Text(
+                          _currentFilter == FilterType.day
+                              ? DateFormat('EEE, d MMM yyyy')
+                                  .format(_selectedDate)
+                              : "Week: ${DateFormat('d MMM').format(_selectedDate)}",
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Colors.blue),
                         ),
-                        const SizedBox(height: 15),
-                        Row(
-                          children: [
-                            const Icon(Icons.calendar_today_outlined,
-                                size: 16, color: Colors.grey),
-                            const SizedBox(width: 6),
-                            Text(item['date'],
-                                style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.w500)),
-                            const SizedBox(width: 20),
-                            const Icon(Icons.access_time_outlined,
-                                size: 16, color: Colors.grey),
-                            const SizedBox(width: 6),
-                            Text(_formatAppointmentRange(item['time'], context),
-                                style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.w500)),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Icon(paymentIcon, size: 16, color: Colors.blueGrey),
-                            const SizedBox(width: 6),
-                            Text("Payment: $paymentMethod",
-                                style: const TextStyle(
-                                    color: Colors.blueGrey,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13)),
-                          ],
-                        ),
-                        if (isPending) ...[
-                          const SizedBox(height: 15),
-                          const Divider(),
-                          const SizedBox(height: 5),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () =>
-                                      _updateStatus(item['id'], 'cancelled'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                    side: const BorderSide(color: Colors.red),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8)),
-                                  ),
-                                  child: const Text("Decline"),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () =>
-                                      _updateStatus(item['id'], 'approved'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8)),
-                                  ),
-                                  child: const Text("Accept"),
-                                ),
-                              ),
-                            ],
-                          )
-                        ]
                       ],
                     ),
                   ),
                 ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_forward_ios, size: 18),
+                  onPressed: () =>
+                      _changeDate(_currentFilter == FilterType.week ? 7 : 1),
+                ),
               ],
             ),
-          ),
-        ),
+          ]
+        ],
       ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, FilterType type) {
+    bool isSelected = _currentFilter == type;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (val) => _setFilter(type),
+      selectedColor: Colors.blue,
+      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+      backgroundColor: Colors.grey.shade200,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     );
   }
 
@@ -391,18 +365,5 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
         ],
       ),
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'approved':
-        return Colors.green;
-      case 'cancelled':
-        return Colors.red;
-      case 'completed':
-        return Colors.grey;
-      default:
-        return Colors.orange;
-    }
   }
 }

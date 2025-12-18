@@ -14,6 +14,7 @@ import 'package:flutter/cupertino.dart';
 import '../../modules/admin/home/pages/admin_home_screen.dart';
 import '../../modules/admin/home/pages/doctors/doctor_details_screen.dart';
 import '../../modules/admin/home/pages/doctors/doctors_screen.dart';
+import '../../modules/admin/home/pages/specialty/admin_specialty_screen.dart';
 import '../../modules/doctor/home/pages/doctor_home_screen.dart';
 import '../../modules/doctor/home/pages/doctor_profile_screen.dart';
 import '../../modules/doctor/registration/pages/doctor_registration_screen.dart';
@@ -77,5 +78,6 @@ class AppRoutes {
       return DoctorDetailScreen(doctorId: doctorId);
     },
     AppRoutesName.adminAppointmentsScreen: (_) => AdminAppointmentsScreen(),
+    AppRoutesName.adminSpecialtyScreen: (_) => AdminSpecialtyScreen(),
   };
 }

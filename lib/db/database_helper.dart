@@ -295,7 +295,8 @@ class DatabaseHelper {
         appointments.*, 
         patientUser.name as patientName, 
         doctorUser.name as doctorName,
-        doctors.specialty
+        doctors.specialty as specialty,
+        doctors.price as price
       FROM appointments
       -- Join to get Patient Info
       INNER JOIN users AS patientUser ON appointments.patientId = patientUser.id

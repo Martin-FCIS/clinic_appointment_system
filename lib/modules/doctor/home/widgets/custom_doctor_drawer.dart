@@ -1,7 +1,7 @@
+import 'package:clinic_appointment_system/core/constants/app_assets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/routes/app_routes_name.dart';
 
 class CustomDoctorDrawer extends StatelessWidget {
   String name;
@@ -29,11 +29,7 @@ class CustomDoctorDrawer extends StatelessWidget {
             accountEmail: Text(email),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
-              child: Icon(
-                Icons.person_2_rounded,
-                size: 40,
-                color: Colors.blue,
-              ),
+              child: isDoctor?Image.asset(AppAssets.doctorIcon,height: 52,):Icon(Icons.person_rounded,size: 50,color: Colors.blue,),
             ),
           ),
           ListTile(

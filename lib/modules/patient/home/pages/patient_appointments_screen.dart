@@ -1,83 +1,136 @@
+import 'package:clinic_appointment_system/modules/core_widgets/appointment_card.dart';
 import 'package:flutter/material.dart';
-
+import 'package:intl/intl.dart';
+import '../../../../core/logic/appointment_filter_strategy.dart';
 import '../../../../repositories/clinic_repository.dart';
+
+enum FilterType { all, day, week }
 
 class PatientAppointmentsScreen extends StatefulWidget {
   final int patientId;
-  const PatientAppointmentsScreen({super.key,required this.patientId});
+
+  const PatientAppointmentsScreen({super.key, required this.patientId});
 
   @override
-  State<PatientAppointmentsScreen> createState() => _PatientAppointmentsScreenState();
+  State<PatientAppointmentsScreen> createState() =>
+      _PatientAppointmentsScreenState();
 }
 
 class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
   final ClinicRepository _repo = ClinicRepository.getInstance();
-  List<Map<String, dynamic>> _myAppointments = [];
+  List<Map<String, dynamic>> _allAppointments = [];
+  List<Map<String, dynamic>> _displayedAppointments = [];
   bool _isLoading = true;
+  FilterType _currentFilter = FilterType.all;
+  DateTime _selectedDate = DateTime.now();
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _loadData();
   }
-  void _loadData()async{
+
+  Future<void> _loadData() async {
     var data = await _repo.getPatientAppointments(widget.patientId);
     if (mounted) {
       setState(() {
-        _myAppointments = data;
+        _allAppointments = data;
         _isLoading = false;
+        _applyFilter();
       });
     }
   }
+
+  void _applyFilter() {
+    setState(() {
+      AppointmentFilterStrategy strategy;
+      switch(_currentFilter){
+        case FilterType.day:
+          strategy = DayAppointmentsStrategy();
+          break;
+        case FilterType.week:
+          strategy=WeekAppointmentsStrategy();
+          break;
+        case FilterType.all:
+        default:
+          strategy=AllAppointmentsStrategy();
+          break;
+      }
+      _displayedAppointments=strategy.execute(_allAppointments, _selectedDate);
+    });
+  }
+
+  void _setFilter(FilterType type) {
+    setState(() {
+      _currentFilter = type;
+      _applyFilter();
+    });
+  }
+
+  void _changeDate(int days) {
+    setState(() {
+      _selectedDate = _selectedDate.add(Duration(days: days));
+      _applyFilter();
+    });
+  }
+
+  void _pickDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+        _applyFilter();
+      });
+    }
+  }
+
   void _cancelAppointment(int appointmentId) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Cancel Appointment?"),
-        content: const Text("Are you sure you want to cancel this booking?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("No"),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await _repo.updateAppointmentStatus(appointmentId, 'cancelled');
+      builder: (ctx) =>
+          AlertDialog(
+            title: const Text("Cancel Appointment?"),
+            content: const Text(
+                "Are you sure you want to cancel this booking?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("No"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  await _repo.updateAppointmentStatus(
+                      appointmentId, 'cancelled');
 
-              _loadData();
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Appointment Cancelled"), backgroundColor: Colors.red),
-              );
-            },
-            child: const Text("Yes, Cancel", style: TextStyle(color: Colors.red)),
+                  _loadData();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Appointment Cancelled"),
+                          backgroundColor: Colors.red),
+                    );
+                  }
+                },
+                child: const Text(
+                    "Yes, Cancel", style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ),
-        ],
-      ),
     );
-  }
-  String _formatAppointmentRange(String startTime, BuildContext context) {
-    try {
-      final parts = startTime.split(':');
-      final start = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-      final startInMinutes = start.hour * 60 + start.minute;
-      final endInMinutes = startInMinutes + 15;
-
-      final end = TimeOfDay(hour: endInMinutes ~/ 60, minute: endInMinutes % 60);
-
-      return "${start.format(context)} - ${end.format(context)}";
-
-    } catch (e) {
-      return startTime;
-    }
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text("My Appointments", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text("My Appointments",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.blue,
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -91,197 +144,123 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
           )
         ],
       ),
-      body: _isLoading
+      body: Column(
+          children: [
+          _buildFilterHeader(),
+      Expanded(child: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _myAppointments.isEmpty
+          : _displayedAppointments.isEmpty
           ? _buildEmptyState()
           : RefreshIndicator(
         onRefresh: () async => _loadData(),
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: _myAppointments.length,
+          itemCount: _displayedAppointments.length,
           itemBuilder: (context, index) {
-            return _buildAppointmentCard(_myAppointments[index]);
+            final item=_displayedAppointments[index];
+            return AppointmentCard(item: item, isDoctorView: false,onCancel: () {
+              _cancelAppointment(item['id']);
+            },);
           },
         ),
       ),
-    );
-  }
-
-  Widget _buildAppointmentCard(Map<String, dynamic> item) {
-    String status = item['status'];
-    Color statusColor = _getStatusColor(status);
-    IconData statusIcon = _getStatusIcon(status);
-
-    bool canCancel = status != 'cancelled' && status != 'completed';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4)),
+      ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: IntrinsicHeight(
-          child: Row(
+    );
+  }
+  Widget _buildFilterHeader() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(width: 6, color: statusColor),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Dr. ${item['doctorName']}",
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                item['specialty'],
-                                style: const TextStyle(color: Colors.grey, fontSize: 14),
-                              ),
-                            ],
-                          ),
-                          _buildStatusBadge(status, statusColor, statusIcon),
-                        ],
-                      ),
-
-                      const SizedBox(height: 15),
-                      const Divider(),
-                      const SizedBox(height: 10),
-
-                      Row(
-                        children: [
-                          _buildInfoChip(Icons.calendar_today_outlined, item['date']),
-                          const SizedBox(width: 15),
-                          _buildInfoChip(
-                              Icons.access_time_rounded,
-                              _formatAppointmentRange(item['time'], context)
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      Row(
-                        children: [
-                          _buildInfoChip(Icons.monetization_on_outlined, "${item['price']} EGP"),
-                          const SizedBox(width: 15),
-                          _buildInfoChip(Icons.payment, "${item['paymentMethod']}"),
-                        ],
-                      ),
-
-                      if (canCancel) ...[
-                        const SizedBox(height: 15),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: InkWell(
-                            onTap: () => _cancelAppointment(item['id']),
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                  color: Colors.red.shade50,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.red.shade200)
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.cancel_outlined, size: 16, color: Colors.red),
-                                  SizedBox(width: 4),
-                                  Text("Cancel Booking", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )
-                      ]
-                    ],
-                  ),
-                ),
-              ),
+              _buildFilterChip("All", FilterType.all),
+              const SizedBox(width: 10),
+              _buildFilterChip("Day", FilterType.day),
+              const SizedBox(width: 10),
+              _buildFilterChip("Week", FilterType.week),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(String status, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 5),
-          Text(
-            status.toUpperCase(),
-            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
-          ),
+          if (_currentFilter != FilterType.all) ...[
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios, size: 18),
+                  onPressed: () => _changeDate(_currentFilter == FilterType.week ? -7 : -1),
+                ),
+                InkWell(
+                  onTap: _pickDate,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.blue.shade200)
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 16, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        Text(
+                          _currentFilter == FilterType.day
+                              ? DateFormat('EEE, d MMM yyyy').format(_selectedDate)
+                              : "Week: ${DateFormat('d MMM').format(_selectedDate)}",
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_forward_ios, size: 18),
+                  onPressed: () => _changeDate(_currentFilter == FilterType.week ? 7 : 1),
+                ),
+              ],
+            ),
+          ]
         ],
       ),
     );
   }
-
-  Widget _buildInfoChip(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: Colors.grey[600]),
-        const SizedBox(width: 6),
-        Text(text, style: TextStyle(color: Colors.grey[800], fontWeight: FontWeight.w500)),
-      ],
+  Widget _buildFilterChip(String label, FilterType type) {
+    bool isSelected = _currentFilter == type;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (val) => _setFilter(type),
+      selectedColor: Colors.blue,
+      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+      backgroundColor: Colors.grey.shade200,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     );
   }
-
   Widget _buildEmptyState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.calendar_month_outlined, size: 80, color: Colors.grey.shade300),
+          Icon(Icons.calendar_month_outlined, size: 80,
+              color: Colors.grey.shade300),
           const SizedBox(height: 20),
-          Text("No Appointments Yet", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+          Text("No Appointments Yet", style: TextStyle(fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade600)),
           const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, shape: const StadiumBorder()),
-            child: const Text("Book Now", style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue, shape: const StadiumBorder()),
+            child: const Text(
+                "Book Now", style: TextStyle(color: Colors.white)),
           )
         ],
       ),
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'approved': return Colors.green;
-      case 'cancelled': return Colors.red;
-      case 'completed': return Colors.grey;
-      default: return Colors.orange;
-    }
-  }
-
-  IconData _getStatusIcon(String status) {
-    switch (status) {
-      case 'approved': return Icons.check_circle;
-      case 'cancelled': return Icons.cancel;
-      case 'completed': return Icons.history;
-      default: return Icons.hourglass_bottom;
-    }
   }
 }

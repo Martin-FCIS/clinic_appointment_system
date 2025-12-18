@@ -1,5 +1,7 @@
 import 'package:clinic_appointment_system/db/database_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/constants/const_variables.dart';
 import '../models/doctor_model.dart';
 import '../models/schedule_model.dart';
 import '../models/user_model.dart';
@@ -17,6 +19,26 @@ class ClinicRepository {
 
   final DatabaseHelper _databaseHelper = DatabaseHelper.getInstance();
 
+  //shared pref
+  static const String _specialtiesKey='SPECIALTIES_LIST';
+  Future<List<String>> getSpecialties() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String>? savedList = prefs.getStringList(_specialtiesKey);
+
+    if (savedList == null || savedList.isEmpty) {
+      await prefs.setStringList(_specialtiesKey, ConstVariables.speciality);
+      return ConstVariables.speciality;
+    }
+    return savedList;
+  }
+  Future<void> addSpecialty(String newSpecialty) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> currentList = await getSpecialties();
+    if (!currentList.contains(newSpecialty)) {
+      currentList.add(newSpecialty);
+      await prefs.setStringList(_specialtiesKey, currentList);
+    }
+  }
   //user
   Future<int> registerUser(User user) async {
     return await _databaseHelper.createUser(user.toMap());
@@ -150,4 +172,5 @@ class ClinicRepository {
   Future<int> getPendingDoctorsCount() async {
     return await _databaseHelper.getPendingDoctorsCount();
   }
+
 }

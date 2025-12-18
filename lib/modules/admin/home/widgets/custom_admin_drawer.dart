@@ -50,6 +50,14 @@ class CustomAdminDrawer extends StatelessWidget {
               Navigator.pushNamed(context, AppRoutesName.adminDoctorsScreen);
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.medical_services_rounded, color: Colors.blue),
+            title: const Text("Specialties"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppRoutesName.adminSpecialtyScreen);
+            },
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),

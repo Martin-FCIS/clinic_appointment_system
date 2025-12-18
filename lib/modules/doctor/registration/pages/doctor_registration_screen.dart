@@ -1,4 +1,3 @@
-import 'package:clinic_appointment_system/core/constants/const_variables.dart';
 import 'package:clinic_appointment_system/core/routes/app_routes_name.dart';
 import 'package:clinic_appointment_system/core/themes/themes.dart';
 import 'package:clinic_appointment_system/modules/auth/widgets/custom_button.dart';
@@ -39,6 +38,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
   User? _currentUser;
   bool _isLoading = true;
   String? _selectedSpeciality;
+  List<String> _specialtiesList = [];
   final List<WorkDayHelper> _uiDays = [
     WorkDayHelper(dayName: 'Saturday'),
     WorkDayHelper(dayName: 'Sunday'),
@@ -54,6 +54,15 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
     // TODO: implement initState
     super.initState();
     _fetchUserData();
+    _loadSpecialties();
+  }
+  void _loadSpecialties() async {
+    var list = await _repository.getSpecialties();
+    if (mounted) {
+      setState(() {
+        _specialtiesList = list;
+      });
+    }
   }
 
   void _fetchUserData() async {
@@ -255,10 +264,12 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
             ),
             CustomDropDownAdapter(
                 onChanged: (val) {
-                  _selectedSpeciality = val;
+                  setState(() {
+                    _selectedSpeciality = val;
+                  });
                 },
                 selectedValue: _selectedSpeciality,
-                list: ConstVariables.speciality,
+                list: _specialtiesList,
                 label: "Speciality:"),
             SizedBox(
               height: 5,
