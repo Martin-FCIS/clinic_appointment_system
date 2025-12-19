@@ -219,20 +219,6 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text("My Appointments",
             style: TextStyle(fontSize: 30, color: Colors.white)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: Colors.white),
-            tooltip: "Add Dummy Data",
-            onPressed: () async {
-              _loadAppointments();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text("Dummy data added!"),
-                    backgroundColor: Colors.blue),
-              );
-            },
-          )
-        ],
         backgroundColor: Colors.blue,
         centerTitle: true,
         elevation: 0,

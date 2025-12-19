@@ -1,8 +1,7 @@
 import 'package:clinic_appointment_system/repositories/clinic_repository.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../../../../core/constants/const_variables.dart';
 import '../../../../core/utils/security_utils.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/user_model.dart';
@@ -20,12 +19,10 @@ class DoctorProfileScreen extends StatefulWidget {
 }
 
 class _DoctorProfileScreen extends State<DoctorProfileScreen> {
-  // Controllers
   TextEditingController nameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController priceController = TextEditingController();
 
-  // Password Controllers
   TextEditingController currentPassController = TextEditingController();
   TextEditingController newPassController = TextEditingController();
   TextEditingController confirmPassController = TextEditingController();
@@ -39,6 +36,7 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
   List<String> _specialtiesList = [];
 
   final ClinicRepository _repository = ClinicRepository.getInstance();
+
   @override
   void initState() {
     super.initState();
@@ -53,17 +51,22 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
     if (userMap != null && doctorMap != null) {
       User user = userMap;
       Doctor doctor = doctorMap;
+
+      if (!list.contains(doctor.specialty)) {
+        list.add(doctor.specialty);
+      }
       _specialtiesList = list.toSet().toList();
+
       nameController.text = user.name;
       emailController.text = user.email;
       priceController.text = doctor.price.toString();
       _selectedSpeciality = doctor.specialty;
+
       if (mounted) {
         setState(() {
           _currentUser = user;
           _initialUserData = user;
           _initialDoctorData = doctor;
-
           _isLoading = false;
         });
       }
@@ -73,23 +76,22 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
   void _updateProfile() async {
     if (_selectedSpeciality == null ||
         priceController.text.trim().isEmpty ||
-        nameController.text.trim().isEmpty||emailController.text.trim().isEmpty) {
+        nameController.text.trim().isEmpty ||
+        emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Please fill basic info"),
           backgroundColor: Colors.red));
       return;
     }
-    if(!SecurityUtils.isValidEmail(emailController.text.trim())){
+    if (!SecurityUtils.isValidEmail(emailController.text.trim())) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("Invalid Email Format (e.g. name@domain.com)"),
-          backgroundColor: Colors.red));
-      emailController.text=_initialUserData!.email;
+          content: Text("Invalid Email Format"), backgroundColor: Colors.red));
+      emailController.text = _initialUserData!.email;
       return;
     }
     if (double.tryParse(priceController.text.trim()) == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("Invalid Price! Please enter a number."),
-          backgroundColor: Colors.red));
+          content: Text("Invalid Price"), backgroundColor: Colors.red));
       priceController.clear();
       return;
     }
@@ -100,9 +102,8 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
         emailController.text != _initialUserData!.email;
     double newPrice = double.tryParse(priceController.text) ?? 0.0;
 
-    bool clinicInfoChanged =
-        newPrice != _initialDoctorData!.price ||
-            _selectedSpeciality != _initialDoctorData!.specialty;
+    bool clinicInfoChanged = newPrice != _initialDoctorData!.price ||
+        _selectedSpeciality != _initialDoctorData!.specialty;
 
     if (!passwordChanged && !personalInfoChanged && !clinicInfoChanged) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -127,7 +128,7 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
       }
 
       String hashedCurrentInput =
-          SecurityUtils.hashPassword(currentPassController.text);
+      SecurityUtils.hashPassword(currentPassController.text);
       if (hashedCurrentInput != _currentUser!.password) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text("Wrong Current Password!"),
@@ -147,10 +148,9 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
         currentPassController.clear();
         return;
       }
-      if(!SecurityUtils.isStrongPassword(newPassController.text)){
+      if (!SecurityUtils.isStrongPassword(newPassController.text)) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Weak Password! Use 8+ chars (letters & numbers)"),
-            backgroundColor: Colors.red));
+            content: Text("Weak Password!"), backgroundColor: Colors.red));
         confirmPassController.clear();
         newPassController.clear();
         currentPassController.clear();
@@ -182,7 +182,7 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Profile Updated Successfully!"),
-          backgroundColor: Colors.green));
+          backgroundColor: Colors.blue));
       Navigator.pop(context);
     }
   }
@@ -208,7 +208,6 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Basic Info
               const Text("Basic Info",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 15),
@@ -227,12 +226,9 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
                   isPass: false,
                   isSignUp: false,
                   isEmail: true),
-
               const SizedBox(height: 25),
               const Divider(),
               const SizedBox(height: 10),
-
-              // Password
               const Text("Change Password (Optional)",
                   style: TextStyle(
                       fontSize: 18,
@@ -262,12 +258,9 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
                   isPass: true,
                   isSignUp: false,
                   isEmail: false),
-
               const SizedBox(height: 25),
               const Divider(),
               const SizedBox(height: 10),
-
-              // Clinic Info
               const Text("Clinic Info",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 15),
@@ -285,12 +278,11 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
               CustomTextFormField(
                   Controller: priceController,
                   hintText: "Session Price",
-                  icon: const Icon(Icons.monetization_on),
+                  icon: const Icon(FontAwesomeIcons.dollarSign),
                   isPass: false,
                   isSignUp: false,
                   isEmail: false,
                   isPrice: true),
-
               const SizedBox(height: 40),
               CustomButton(function: _updateProfile, text: "Save Changes"),
               const SizedBox(height: 20),

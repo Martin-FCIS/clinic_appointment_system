@@ -31,6 +31,13 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            onPressed: () {
+              Navigator.pushReplacementNamed(
+                  context, AppRoutesName.adminHomeScreen);
+            },
+            icon: Icon(Icons.arrow_back),
+          ),
           title: const Text(
             "All Approved Doctors",
             style: TextStyle(fontSize: 30, color: Colors.white),

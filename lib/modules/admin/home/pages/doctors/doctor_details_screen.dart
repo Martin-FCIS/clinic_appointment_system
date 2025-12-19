@@ -25,6 +25,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
 
   Map<String, dynamic>? doctorData;
   bool isLoading = true;
+  List<String> _specialtyList = [];
 
   @override
   void initState() {
@@ -33,10 +34,19 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
   }
 
   Future<void> _fetchDoctorDetails() async {
+    var list = await _repository.getSpecialties();
     final data = await _repository.getDoctorById(widget.doctorId);
     doctorData = data;
+
     if (mounted && doctorData != null) {
-      selectedValue = doctorData!['specialty'];
+      String fetchedSpecialty = doctorData!['specialty'];
+
+      if (!list.contains(fetchedSpecialty)) {
+        list.add(fetchedSpecialty);
+      }
+
+      _specialtyList = list.toSet().toList();
+      selectedValue = fetchedSpecialty;
       priceController.text = doctorData!['price'].toString();
     }
     setState(() {
@@ -98,7 +108,6 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -111,7 +120,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
           appBar: AppBar(title: const Text("Doctor Not Found")),
           body: const Center(
               child:
-                  Text("Could not load doctor details. ID may be invalid.")));
+              Text("Could not load doctor details. ID may be invalid.")));
     }
 
     return Scaffold(
@@ -128,10 +137,9 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               Text("Email: ${doctorData!['email']}",
                   style: Theme.of(context).textTheme.titleMedium),
               const Divider(height: 30),
-
-              // Specialty Field
               CustomDropDownAdapter(
-                  list: ConstVariables.speciality,
+                  key: ValueKey(_specialtyList.length),
+                  list: _specialtyList,
                   label: "Speciality",
                   selectedValue: selectedValue,
                   onChanged: (value) {
@@ -140,8 +148,6 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                     });
                   }),
               const SizedBox(height: 20),
-
-              // Price Field
               CustomTextFormField(
                 Controller: priceController,
                 hintText: 'Appointment Price',
@@ -152,25 +158,18 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                 isPrice: true,
               ),
               const SizedBox(height: 30),
-
-              // Update Button
               CustomButton(
                 function: _updateDoctor,
                 text: 'Update Info',
               ),
               const SizedBox(height: 40),
-
-              // Schedule Editor (Days and Times)
               ScheduleEditor(doctorId: widget.doctorId),
-
               const SizedBox(height: 40),
-
-              // Delete Button
             ],
           ),
         ),
       ),
-      bottomNavigationBar:  Padding(
+      bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: CustomButton(
           color: Colors.red,

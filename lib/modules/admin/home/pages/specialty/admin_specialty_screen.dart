@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/routes/app_routes_name.dart';
 import '../../../../../repositories/clinic_repository.dart';
 
 class AdminSpecialtyScreen  extends StatefulWidget {
@@ -78,6 +79,13 @@ class _AdminSpecialtyScreenState extends State<AdminSpecialtyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pushReplacementNamed(
+                context, AppRoutesName.adminHomeScreen);
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
         title: const Text("Manage Specialties",

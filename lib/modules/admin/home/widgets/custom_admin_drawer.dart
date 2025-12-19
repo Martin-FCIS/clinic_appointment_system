@@ -38,7 +38,7 @@ class CustomAdminDrawer extends StatelessWidget {
             title: const Text("Appointments"),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(
+              Navigator.pushReplacementNamed(
                   context, AppRoutesName.adminAppointmentsScreen);
             },
           ),
@@ -47,7 +47,7 @@ class CustomAdminDrawer extends StatelessWidget {
             title: const Text("Doctors"),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, AppRoutesName.adminDoctorsScreen);
+              Navigator.pushReplacementNamed(context, AppRoutesName.adminDoctorsScreen);
             },
           ),
           ListTile(
@@ -55,7 +55,7 @@ class CustomAdminDrawer extends StatelessWidget {
             title: const Text("Specialties"),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, AppRoutesName.adminSpecialtyScreen);
+              Navigator.pushReplacementNamed(context, AppRoutesName.adminSpecialtyScreen);
             },
           ),
           const Divider(),
