@@ -1,8 +1,8 @@
 class ConstVariables {
   static List<String> speciality = [
     "Ophthalmology",
-    "neurology",
-    "cardiology",
+    "Neurology",
+    "Cardiology",
     "Pulmonology",
     "Hepatology",
     "Endocrinology",

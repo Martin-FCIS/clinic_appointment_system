@@ -28,16 +28,29 @@ class _AdminSpecialtyScreenState extends State<AdminSpecialtyScreen> {
     }
   }
   void _addSpecialty() async {
-    if (_controller.text.isEmpty) return;
+    String text = _controller.text.trim();
 
-    await _repository.addSpecialty(_controller.text.trim());
+    if (text.isEmpty) return;
+    bool alreadyExists = _specialties.any((element) =>
+    element.toLowerCase() == text.toLowerCase());
+
+    if (alreadyExists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("This specialty already exists!"),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    await _repository.addSpecialty(text);
     _controller.clear();
     Navigator.pop(context);
     _loadSpecialties();
-
     if(mounted){
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Specialty Added!"), backgroundColor: Colors.blue),
+        const SnackBar(content: Text("Specialty Added!"), backgroundColor: Colors.green),
       );
     }
   }

@@ -55,7 +55,7 @@ class DatabaseHelper {
         userId INTEGER NOT NULL,
         specialty TEXT NOT NULL,
         price REAL NOT NULL,
-        status TEXT DEFAULT 'pending', -- (New) حالة الدكتور: pending, approved, rejected
+        status TEXT DEFAULT 'pending',
         FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
       )
     ''');
@@ -63,7 +63,7 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE schedules (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        doctorId INTEGER NOT NULL, -- مربوط بجدول الدكاترة
+        doctorId INTEGER NOT NULL, 
         day TEXT NOT NULL,       -- "Saturday", "Monday"
         startTime TEXT NOT NULL, -- "10:00"
         endTime TEXT NOT NULL,   -- "14:00"
@@ -80,7 +80,7 @@ class DatabaseHelper {
     date TEXT NOT NULL,
     time TEXT NOT NULL,
     status TEXT DEFAULT 'pending',
-    paymentMethod TEXT NOT NULL, -- (جديد) 'Cash' or 'Credit Card'
+    paymentMethod TEXT NOT NULL, 
     FOREIGN KEY (patientId) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (doctorId) REFERENCES doctors (id) ON DELETE CASCADE
   )
@@ -212,7 +212,7 @@ class DatabaseHelper {
       SELECT doctors.id, users.name, doctors.userId, doctors.status,doctors.specialty, doctors.price 
       FROM doctors
       INNER JOIN users ON doctors.userId = users.id
-      WHERE doctors.status = 'approved'  -- (New) الشرط ده مهم جداً
+      WHERE doctors.status = 'approved' 
     ''');
   }
 

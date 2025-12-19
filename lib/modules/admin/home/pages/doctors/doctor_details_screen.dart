@@ -46,7 +46,6 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
 
   Future<void> _updateDoctor() async {
     if (_formKey.currentState!.validate()) {
-      // Basic input validation for price
       if (double.tryParse(priceController.text) == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -124,7 +123,6 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Doctor Details (Read-only)
               Text("Name: ${doctorData!['name']}",
                   style: Theme.of(context).textTheme.headlineSmall),
               Text("Email: ${doctorData!['email']}",

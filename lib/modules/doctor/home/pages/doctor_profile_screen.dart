@@ -36,6 +36,7 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
 
   Doctor? _initialDoctorData;
   User? _initialUserData;
+  List<String> _specialtiesList = [];
 
   final ClinicRepository _repository = ClinicRepository.getInstance();
   @override
@@ -45,17 +46,18 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
   }
 
   void _loadExistingData() async {
+    var list = await _repository.getSpecialties();
     var userMap = await _repository.getUserById(widget.userId);
     var doctorMap = await _repository.getDoctorDetails(widget.userId);
 
     if (userMap != null && doctorMap != null) {
       User user = userMap;
       Doctor doctor = doctorMap;
+      _specialtiesList = list.toSet().toList();
       nameController.text = user.name;
       emailController.text = user.email;
       priceController.text = doctor.price.toString();
       _selectedSpeciality = doctor.specialty;
-
       if (mounted) {
         setState(() {
           _currentUser = user;
@@ -270,13 +272,14 @@ class _DoctorProfileScreen extends State<DoctorProfileScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 15),
               CustomDropDownAdapter(
+                  key: ValueKey(_specialtiesList.length),
                   onChanged: (val) {
                     setState(() {
                       _selectedSpeciality = val;
                     });
                   },
                   selectedValue: _selectedSpeciality,
-                  list: ConstVariables.speciality,
+                  list: _specialtiesList,
                   label: "Speciality"),
               const SizedBox(height: 15),
               CustomTextFormField(

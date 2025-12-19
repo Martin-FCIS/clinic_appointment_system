@@ -56,7 +56,6 @@ class _ScheduleEditorState extends State<ScheduleEditor> {
     String end =
         '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
 
-    // Simple validation to ensure end time is after start time
     if (startTime.hour * 60 + startTime.minute >=
         endTime.hour * 60 + endTime.minute) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -197,7 +196,6 @@ class _ScheduleEditorState extends State<ScheduleEditor> {
                   subtitle: Text("${_formatTo12Hour(schedule.startTime)} - ${_formatTo12Hour(schedule.endTime)}"),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                    // Use schedule.id to delete
                     onPressed: () => _deleteSchedule(schedule.id! as int),
                   ),
                 );

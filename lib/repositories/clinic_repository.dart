@@ -34,10 +34,16 @@ class ClinicRepository {
   Future<void> addSpecialty(String newSpecialty) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> currentList = await getSpecialties();
-    if (!currentList.contains(newSpecialty)) {
-      currentList.add(newSpecialty);
-      await prefs.setStringList(_specialtiesKey, currentList);
-    }
+    currentList.add(newSpecialty);
+    List<String> formattedList = currentList
+        .where((item) => item.trim().isNotEmpty)
+        .map((item) {
+      String trimmed = item.trim();
+      return trimmed[0].toUpperCase() + trimmed.substring(1).toLowerCase();
+    })
+        .toSet()
+        .toList();
+    await prefs.setStringList(_specialtiesKey, formattedList);
   }
   //user
   Future<int> registerUser(User user) async {
